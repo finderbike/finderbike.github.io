@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FinderBike - аренда байков на Пхукете через подбор</title>
+<meta name="description" content="Подберу байк на Пхукете у проверенных прокатов: 3 варианта за час, видео конкретного байка до брони, цена как в прокате. Для вас бесплатно">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FinderBike">
+<meta property="og:title" content="FinderBike - байк на Пхукете без 30 сообщений в прокаты">
+<meta property="og:description" content="3 варианта за час, видео байка до брони, цена как в прокате. Для вас бесплатно">
+<meta property="og:image" content="https://finderbike.github.io/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="assets/fonts/unbounded-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/onest-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+<script defer src="assets/app.js"></script>
+</head>
+<body>
+<!--
+THESIS: прайс-табло человека, который уже обзвонил 30 прокатов, плюс одна заявка. Отвергаем вид «ещё один прокат» и вид «агрегатор с тысячей фильтров»
+OWN-WORLD: белый лист и бетонно-серые поверхности как на фото парковки, один бирюзовый акцент Андаманского моря, широкий Unbounded для цифр цен, Onest для текста, кнопки мессенджеров в их цветах
+STORY: понимает, что это подбор, а не прокат, и что для него бесплатно. Верит, потому что видит цены, условия и пример ответа. Отправляет заявку в мессенджер
+FIRST VIEWPORT: слева H1 и две кнопки, справа пример переписки с тремя вариантами и видео байка. На телефоне переписка ниже кнопок
+FORM: одностраничник с каталогом-табло и мини-заявкой, которая собирает текст и открывает Telegram или WhatsApp
+-->
+<a class="skip" href="#request" data-i18n="skip">Перейти к заявке</a>
+
+<header class="top" id="top">
+  <div class="wrap top__in">
+    <a class="logo" href="#top" aria-label="FinderBike">
+      <svg class="logo__mark" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="10.5" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="14" cy="14" r="3.6" fill="currentColor"/><path d="M14 3.5v4M14 20.5v4M3.5 14h4M20.5 14h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span>FinderBike</span>
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#bikes" data-i18n="nav.bikes">Байки и цены</a>
+      <a href="#how" data-i18n="nav.how">Как это работает</a>
+      <a href="#terms" data-i18n="nav.terms">Условия</a>
+      <a href="#faq" data-i18n="nav.faq">Вопросы</a>
+    </nav>
+    <div class="top__right">
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="btn btn--accent btn--sm top__cta" href="#request" data-i18n="cta.header">Заявка</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <h1 data-i18n="hero.h1">Байк на Пхукете без 30 сообщений в&nbsp;прокаты</h1>
+        <p class="lead" data-i18n="hero.lead">Напишите даты и район. В течение часа пришлю 3 лучших варианта у&nbsp;проверенных прокатов, с видео конкретного байка. Цена как в самом прокате, для вас бесплатно</p>
+        <div class="hero__cta" id="heroCta">
+          <a class="btn btn--accent btn--lg" href="#request" data-i18n="hero.cta1">Подобрать байк</a>
+          <a class="btn btn--ghost btn--lg" href="#bikes" data-i18n="hero.cta2">Смотреть цены</a>
+        </div>
+        <ul class="facts">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="fact.1">3 варианта за час</span></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg><span data-i18n="fact.2">Видео байка до брони</span></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span data-i18n="fact.3">Цена и залог письменно</span></li>
+        </ul>
+      </div>
+
+      <figure class="chat" aria-label="Пример переписки">
+        <figcaption class="chat__label" data-i18n="chat.label">Пример ответа на заявку</figcaption>
+        <div class="chat__head">
+          <span class="chat__ava" aria-hidden="true">FB</span>
+          <span><b data-i18n="chat.name">Дмитрий | FinderBike</b><small data-i18n="chat.status">подбор байков на Пхукете</small></span>
+        </div>
+        <div class="chat__body">
+          <p class="msg msg--me" style="--d:0"><span data-i18n="chat.q">Привет! Нужен скутер на декабрь, живу в Кароне, будем ездить вдвоём. Опыт 2 года</span><time>10:02</time></p>
+          <div class="msg msg--him" style="--d:1">
+            <span data-i18n-html="chat.a">Вот 3 варианта на 1-31 декабря, Карон:<br>1. Click 160 ABS - 5&nbsp;500&nbsp;฿ в месяц<br>2. PCX 160 ABS - 7&nbsp;000&nbsp;฿ в месяц<br>3. ADV 160 ABS - 7&nbsp;500&nbsp;฿ в месяц<br>Залог 3&nbsp;000&nbsp;฿, доставка в Карон бесплатно<br><br>Я бы взял PCX: вдвоём на подъёмах тянет уверенно</span><time>10:39</time>
+          </div>
+          <div class="msg msg--him msg--video" style="--d:2">
+            <span class="vid"><img src="img/pcx-160cc-abs.webp" alt="" width="800" height="800" fetchpriority="high"><span class="vid__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span></span>
+            <span class="vid__cap" data-i18n="chat.video">Видео PCX 160 ABS: со всех сторон, пробег, запуск</span><time>10:41</time>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="honest" aria-labelledby="honestTitle">
+    <div class="wrap honest__in">
+      <svg class="honest__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.01"/></svg>
+      <div>
+        <h2 id="honestTitle" data-i18n="honest.t">FinderBike - это сервис подбора, а не прокат</h2>
+        <p data-i18n="honest.p">Байк выдаёт проверенный прокат-партнёр, договор аренды заключается с ним, цена такая же, как у него. Для вас услуга бесплатна: прокат платит мне процент со своей цены</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="howTitle">
+    <div class="wrap">
+      <h2 class="h2" id="howTitle" data-i18n="how.t">Как это работает</h2>
+      <ol class="steps">
+        <li><b data-i18n="how.1t">Вы пишете заявку</b><p data-i18n="how.1p">Даты, район, что нужно, опыт и бюджет. Через форму ниже или сразу в мессенджер</p></li>
+        <li><b data-i18n="how.2t">Я сравниваю прокаты</b><p data-i18n="how.2p">В течение часа присылаю 3 лучших варианта: цена и залог письменно, видео конкретного байка</p></li>
+        <li><b data-i18n="how.3t">Вы забираете байк</b><p data-i18n="how.3p">Бронирую у проката и присылаю номер брони. Забираете байк в прокате или вам его привозят</p></li>
+      </ol>
+      <p class="note" data-i18n="how.note">Отвечаю с 8:00 до 23:00. Заявку после 20:00 подтверждаю у проката утром</p>
+    </div>
+  </section>
+
+  <section class="section section--surface" id="bikes" aria-labelledby="bikesTitle">
+    <div class="wrap">
+      <div class="cat__head">
+        <div>
+          <h2 class="h2" id="bikesTitle" data-i18n="bikes.t">Байки и цены</h2>
+          <p class="sub" data-i18n="bikes.sub">15 моделей Honda у основного проката-партнёра. Видео выбранного байка пришлю до брони. Нет нужного у него - найду у других</p>
+        </div>
+        <div class="cat__controls">
+          <div class="seg" role="radiogroup" aria-label="Период" id="period"></div>
+          <div class="chips" role="radiogroup" aria-label="Объём" id="cls"></div>
+        </div>
+      </div>
+      <ul class="grid" id="grid" aria-live="polite"></ul>
+      <p class="caption" data-i18n="bikes.caption">Цены высокого сезона, до 31 марта 2027. Точную цену на ваши даты подтвержу в течение часа. RoadSync - версия, где смартфон подключается к приборной панели. Машины и мотоциклы - по запросу</p>
+    </div>
+  </section>
+
+  <section class="section" id="why" aria-labelledby="whyTitle">
+    <div class="wrap why">
+      <div class="why__intro">
+        <h2 class="h2" id="whyTitle" data-i18n="why.t">Почему через меня</h2>
+        <p class="why__story" data-i18n="why.story">Я сам искал байк на полтора месяца и написал в 30 прокатов. Цены на один и тот же байк отличались сильно, условия тоже. Теперь у меня таблица цен и условий прокатов по всему острову, и я подбираю байк за вас</p>
+        <p class="why__sign" data-i18n="why.sign">Дмитрий, FinderBike</p>
+      </div>
+      <ul class="promises">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><b data-i18n="why.1t">Лучший прокат из 30, которые я проверил сам</b><span data-i18n="why.1p">Нет байка у него - найду у других. Прокаты по всему острову, так что найду, даже если рядом всё разобрали</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg><b data-i18n="why.2t">Видео конкретного байка до брони</b><span data-i18n="why.2p">Видите именно тот байк, который получите: со всех сторон, пробег, запуск двигателя</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><b data-i18n="why.3t">Цена и залог письменно</b><span data-i18n="why.3p">Всё оговорено до брони, никаких сюрпризов при получении</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.3-.4-.4-2.3z"/></svg><b data-i18n="why.4t">Проблема с прокатом - решаю я</b><span data-i18n="why.4p">Пишете мне, я разбираюсь с прокатом. Прокат подвёл клиента - убираю его из своего списка</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--surface" id="terms" aria-labelledby="termsTitle">
+    <div class="wrap">
+      <h2 class="h2" id="termsTitle" data-i18n="terms.t">Условия аренды</h2>
+      <p class="sub" data-i18n="terms.sub">Так у основного проката-партнёра. Если подберу байк у другого проката, его условия пришлю письменно до брони</p>
+      <dl class="terms">
+        <div><dt data-i18n="terms.1t">Паспорт остаётся у вас</dt><dd data-i18n="terms.1p">Прокат делает копию паспорта. Залог только деньгами: 3 000 ฿ за байк до 160 cc, 7 000 ฿ за 350 cc. Можно долларами, евро, USDT или рублями наличными</dd></div>
+        <div><dt data-i18n="terms.2t">Что входит в цену</dt><dd data-i18n="terms.2p">Два шлема и медицинская страховка до 50 000 ฿ при ДТП. Сам байк не застрахован: повреждения и угон оплачивает арендатор</dd></div>
+        <div><dt data-i18n="terms.3t">Доставка</dt><dd data-i18n="terms.3p">При аренде от 5 дней бесплатно в одну сторону в Карон, Кату, Бангтао и Сурин. В другие районы платно, цена зависит от расстояния</dd></div>
+        <div><dt data-i18n="terms.4t">Оплата и продление</dt><dd data-i18n="terms.4p">Оплата сразу за весь срок, при досрочном возврате деньги не возвращают. Продлить можно удалённо, ставка при этом не растёт</dd></div>
+        <div><dt data-i18n="terms.5t">Способы оплаты</dt><dd data-i18n="terms.5p">Наличные баты, перевод на счёт проката, рубли по СБП, USDT. Картой можно, но с наценкой 7%</dd></div>
+        <div><dt data-i18n="terms.6t">Опыт и права</dt><dd data-i18n="terms.6p">Нужен опыт вождения: новичкам без опыта байк не дают. За езду без прав категории A полиция штрафует на 1 000 ฿</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" id="request" aria-labelledby="reqTitle">
+    <div class="wrap req">
+      <div class="req__intro">
+        <h2 class="h2" id="reqTitle" data-i18n="req.t">Заявка на подбор</h2>
+        <p class="sub" data-i18n="req.sub">Заполните, что знаете, и отправьте в удобный мессенджер. Откроется чат со мной, где заявка уже набрана, останется нажать «Отправить»</p>
+        <p class="req__direct"><span data-i18n="req.direct">Или напишите сразу:</span>
+          <a href="https://t.me/finderbike" target="_blank" rel="noopener">Telegram @finderbike</a>
+          <a href="https://wa.me/79936256756" target="_blank" rel="noopener">WhatsApp +7 993 625-67-56</a>
+        </p>
+      </div>
+      <form class="form" id="form" novalidate>
+        <fieldset class="f">
+          <legend data-i18n="f.dates">Даты</legend>
+          <div class="f__row">
+            <label class="f__date"><span data-i18n="f.from">С</span><input type="date" id="fFrom"></label>
+            <label class="f__date"><span data-i18n="f.to">По</span><input type="date" id="fTo"></label>
+          </div>
+        </fieldset>
+        <fieldset class="f">
+          <legend data-i18n="f.area">Район</legend>
+          <div class="pick" id="fArea"></div>
+          <input class="input f__other" id="fAreaOther" type="text" hidden data-i18n-attr="placeholder:f.areaOther" placeholder="Напишите район или отель">
+        </fieldset>
+        <fieldset class="f">
+          <legend data-i18n="f.what">Что нужно</legend>
+          <div class="pick" id="fWhat"></div>
+          <p class="hint" id="hintWhat" hidden data-i18n="f.whatHint">Машины и мотоциклы подбираю по запросу: напишу, что есть на ваши даты</p>
+        </fieldset>
+        <label class="f">
+          <span class="f__label" data-i18n="f.model">Модель</span>
+          <select class="input" id="fModel"></select>
+        </label>
+        <fieldset class="f">
+          <legend data-i18n="f.exp">Опыт вождения</legend>
+          <div class="pick" id="fExp"></div>
+          <p class="hint hint--warn" id="hintExp" hidden data-i18n="f.expHint">Честно: новичкам без опыта прокаты байк не дают. Лучше начать с нескольких занятий с инструктором</p>
+        </fieldset>
+        <div class="f__row">
+          <label class="f">
+            <span class="f__label" data-i18n="f.budget">Бюджет</span>
+            <input class="input" id="fBudget" type="text" data-i18n-attr="placeholder:f.budgetPh" placeholder="Например, до 6 000 ฿ в месяц">
+          </label>
+        </div>
+        <label class="f">
+          <span class="f__label" data-i18n="f.comment">Комментарий</span>
+          <textarea class="input" id="fComment" rows="2" data-i18n-attr="placeholder:f.commentPh" placeholder="Например: ездим вдвоём, нужен багажник"></textarea>
+        </label>
+        <div class="send" id="sendBtns">
+          <a class="btn btn--tg btn--lg" id="sendTg" href="https://t.me/finderbike" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            <span data-i18n="f.sendTg">Отправить в Telegram</span>
+          </a>
+          <a class="btn btn--wa btn--lg" id="sendWa" href="https://wa.me/79936256756" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            <span data-i18n="f.sendWa">Отправить в WhatsApp</span>
+          </a>
+        </div>
+        <p class="hint" data-i18n="f.privacy">Сайт ничего не сохраняет: заявка уходит только в ваш чат со мной</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section section--surface" id="faq" aria-labelledby="faqTitle">
+    <div class="wrap faq">
+      <h2 class="h2" id="faqTitle" data-i18n="faq.t">Частые вопросы</h2>
+      <div class="faq__list">
+        <details><summary data-i18n="faq.1q">Почему для меня бесплатно?</summary><p data-i18n="faq.1a">Прокат платит мне комиссию из своей цены. Для вас цена такая же, как если прийти в прокат самому</p></details>
+        <details><summary data-i18n="faq.2q">Зачем мне вы, если можно написать в прокат самому?</summary><p data-i18n="faq.2a">Можно. Я экономлю ваше время: сравниваю цены и условия по всему острову, присылаю видео конкретного байка и фиксирую цену и залог письменно. Цена для вас та же</p></details>
+        <details><summary data-i18n="faq.3q">Нужны ли права?</summary><p data-i18n="faq.3a">Нужны права с открытой категорией на мотоцикл: международные или тайские. Без них штраф на полицейских проверках, и страховка может не покрыть ДТП</p></details>
+        <details><summary data-i18n="faq.4q">Я раньше не ездил, можно взять байк?</summary><p data-i18n="faq.4a">Честно: новичкам без опыта прокаты байк не дают, и правильно делают. На Пхукете левостороннее движение, крутые серпантины между Патонгом, Кароном и Катой, в дождь асфальт скользкий. Лучше начать с нескольких занятий с инструктором</p></details>
+        <details><summary data-i18n="faq.5q">Если уеду раньше, вернут деньги?</summary><p data-i18n="faq.5a">У основного проката нет: оплата за весь срок договора, за неиспользованные дни деньги не возвращают. Не уверены в сроке - берите месяц и продлевайте удалённо, ставка при продлении не вырастет</p></details>
+        <details><summary data-i18n="faq.6q">Можно заплатить рублями?</summary><p data-i18n="faq.6a">Да, у части прокатов можно перевести рубли по СБП, не нужно искать обменник. Подберу такие варианты</p></details>
+        <details><summary data-i18n="faq.7q">Что если с байком или прокатом проблема?</summary><p data-i18n="faq.7a">Пишите мне, решу с прокатом. Совет: при получении снимите байк на видео со всех сторон. Если при возврате прокат увидит царапину, у вас будет доказательство, что она была раньше</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <div>
+      <a class="logo logo--foot" href="#top">
+        <svg class="logo__mark" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="10.5" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="14" cy="14" r="3.6" fill="currentColor"/><path d="M14 3.5v4M14 20.5v4M3.5 14h4M20.5 14h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>FinderBike</span>
+      </a>
+      <p data-i18n="foot.p">Подбор байков в аренду на Пхукете. FinderBike не прокат: договор аренды вы заключаете с прокатом-партнёром</p>
+    </div>
+    <div class="foot__links">
+      <a href="https://t.me/finderbike" target="_blank" rel="noopener">Telegram @finderbike</a>
+      <a href="https://wa.me/79936256756" target="_blank" rel="noopener">WhatsApp +7 993 625-67-56</a>
+      <small>© 2026 FinderBike</small>
+    </div>
+  </div>
+</footer>
+
+<div class="dock" id="dock" aria-hidden="true">
+  <a class="btn btn--accent dock__main" href="#request" tabindex="-1" data-i18n="hero.cta1">Подобрать байк</a>
+  <a class="btn btn--tg dock__icon" id="dockTg" href="https://t.me/finderbike" target="_blank" rel="noopener" tabindex="-1" aria-label="Telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tg"/></svg></a>
+  <a class="btn btn--wa dock__icon" id="dockWa" href="https://wa.me/79936256756" target="_blank" rel="noopener" tabindex="-1" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wa"/></svg></a>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-tg" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></symbol>
+</svg>
+</body>
+</html>
