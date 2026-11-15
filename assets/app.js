@@ -1,394 +1,552 @@
 (function () {
   'use strict';
-  document.documentElement.classList.add('js');
 
+  var L = window.FB_I18N, LANGS = window.FB_LANGS;
+  var CODES = LANGS.map(function (x) { return x.code; });
   var TG_USER = 'finderbike';
   var WA_PHONE = '79936256756';
 
   // Цены высокого сезона до 31.03.2027, бриф: specs/2026-11-14-brif-sajt-vitrina.md
-  // p = [день, неделя, месяц, в месяц от 3 месяцев], dep = залог
+  // p = [день, неделя, месяц, в месяц от 3 месяцев], dep = залог, cc = объём
   var BIKES = [
-    { id: 'scoopy-110cc-standard', name: 'Scoopy 110', cls: '125', p: [400, 1610, 4000, 3500], dep: 3000 },
-    { id: 'click-125cc-standard', name: 'Click 125', cls: '125', p: [450, 1820, 4500, 4000], dep: 3000 },
-    { id: 'click-160cc-standard', name: 'Click 160 Standard', cls: '160', p: [500, 2030, 5000, 4500], dep: 3000, two: 1 },
-    { id: 'click-160cc-abs', name: 'Click 160 ABS', cls: '160', p: [550, 2240, 5500, 5000], dep: 3000, two: 1, abs: 1 },
-    { id: 'click-160cc-abs-new-gen', name: 'Click 160 ABS New Gen', cls: '160', p: [600, 2450, 6000, 5500], dep: 3000, two: 1, abs: 1 },
-    { id: 'giorno-125cc-abs', name: 'Giorno 125 ABS', cls: '125', p: [600, 2450, 6000, 5500], dep: 3000, abs: 1 },
-    { id: 'pcx-160cc-standard', name: 'PCX 160 Standard', cls: '160', p: [650, 2590, 6500, 6000], dep: 3000, two: 1 },
-    { id: 'pcx-160cc-abs', name: 'PCX 160 ABS', cls: '160', p: [700, 2800, 7000, 6500], dep: 3000, two: 1, abs: 1 },
-    { id: 'adv-160cc-abs', name: 'ADV 160 ABS', cls: '160', p: [750, 3010, 7500, 7000], dep: 3000, two: 1, abs: 1 },
-    { id: 'pcx-160cc-roadsync', name: 'PCX 160 RoadSync', cls: '160', p: [800, 3220, 8000, 7500], dep: 3000, two: 1, rs: 1 },
-    { id: 'adv-160cc-roadsync', name: 'ADV 160 RoadSync', cls: '160', p: [850, 3430, 8500, 8000], dep: 3000, two: 1, rs: 1 },
-    { id: 'forza-350cc-abs', name: 'Forza 350 ABS', cls: '350', p: [1500, 6020, 15000, 12000], dep: 7000, two: 1, abs: 1 },
-    { id: 'adv-350cc-abs', name: 'ADV 350 ABS', cls: '350', p: [1500, 6020, 15000, 12000], dep: 7000, two: 1, abs: 1, img: 'adv-350cc-roadsync', photoNote: 1 },
-    { id: 'adv-350cc-roadsync', name: 'ADV 350 RoadSync', cls: '350', p: [1800, 7000, 18000, 15000], dep: 7000, two: 1, rs: 1 },
-    { id: 'forza-350cc-roadsync', name: 'Forza 350 RoadSync', cls: '350', p: [1800, 7000, 18000, 15000], dep: 7000, two: 1, rs: 1 }
+    { id: 'scoopy-110cc-standard', name: 'Scoopy 110', cls: '125', cc: 110, p: [400, 1610, 4000, 3500], dep: 3000 },
+    { id: 'click-125cc-standard', name: 'Click 125', cls: '125', cc: 125, p: [450, 1820, 4500, 4000], dep: 3000 },
+    { id: 'click-160cc-standard', name: 'Click 160 Standard', cls: '160', cc: 160, p: [500, 2030, 5000, 4500], dep: 3000, two: 1 },
+    { id: 'click-160cc-abs', name: 'Click 160 ABS', cls: '160', cc: 160, p: [550, 2240, 5500, 5000], dep: 3000, two: 1, abs: 1 },
+    { id: 'click-160cc-abs-new-gen', name: 'Click 160 ABS New Gen', cls: '160', cc: 160, p: [600, 2450, 6000, 5500], dep: 3000, two: 1, abs: 1 },
+    { id: 'giorno-125cc-abs', name: 'Giorno 125 ABS', cls: '125', cc: 125, p: [600, 2450, 6000, 5500], dep: 3000, abs: 1 },
+    { id: 'pcx-160cc-standard', name: 'PCX 160 Standard', cls: '160', cc: 160, p: [650, 2590, 6500, 6000], dep: 3000, two: 1 },
+    { id: 'pcx-160cc-abs', name: 'PCX 160 ABS', cls: '160', cc: 160, p: [700, 2800, 7000, 6500], dep: 3000, two: 1, abs: 1 },
+    { id: 'adv-160cc-abs', name: 'ADV 160 ABS', cls: '160', cc: 160, p: [750, 3010, 7500, 7000], dep: 3000, two: 1, abs: 1 },
+    { id: 'pcx-160cc-roadsync', name: 'PCX 160 RoadSync', cls: '160', cc: 160, p: [800, 3220, 8000, 7500], dep: 3000, two: 1, rs: 1 },
+    { id: 'adv-160cc-roadsync', name: 'ADV 160 RoadSync', cls: '160', cc: 160, p: [850, 3430, 8500, 8000], dep: 3000, two: 1, rs: 1 },
+    { id: 'forza-350cc-abs', name: 'Forza 350 ABS', cls: '350', cc: 350, p: [1500, 6020, 15000, 12000], dep: 7000, two: 1, abs: 1 },
+    { id: 'adv-350cc-abs', name: 'ADV 350 ABS', cls: '350', cc: 350, p: [1500, 6020, 15000, 12000], dep: 7000, two: 1, abs: 1, studio: 1 },
+    { id: 'adv-350cc-roadsync', name: 'ADV 350 RoadSync', cls: '350', cc: 350, p: [1800, 7000, 18000, 15000], dep: 7000, two: 1, rs: 1 },
+    { id: 'forza-350cc-roadsync', name: 'Forza 350 RoadSync', cls: '350', cc: 350, p: [1800, 7000, 18000, 15000], dep: 7000, two: 1, rs: 1 }
   ];
-  var CC = { '125': null, '160': '160 cc', '350': '350 cc' };
+  // Размеры фото галерей img/g/<id>/<n>.webp (ширина, высота)
+  var G = {"scoopy-110cc-standard":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"click-125cc-standard":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"click-160cc-standard":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"click-160cc-abs":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"click-160cc-abs-new-gen":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"giorno-125cc-abs":[[1100,825],[1100,825],[1100,825],[1100,825],[1100,825],[1100,825]],"pcx-160cc-standard":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"pcx-160cc-abs":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"adv-160cc-abs":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"pcx-160cc-roadsync":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"adv-160cc-roadsync":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"forza-350cc-abs":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"adv-350cc-abs":[[640,480],[640,480],[1100,778],[1100,778],[800,600]],"adv-350cc-roadsync":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]],"forza-350cc-roadsync":[[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100],[825,1100]]};
+  var CLS = [['125', '110-125 cc'], ['160', '160 cc'], ['350', '350 cc']];
+  var FREE_AREAS = [0, 1, 4, 5]; // Карон, Ката, Сурин, Бангтао
+  var LOCALE = { ru: 'ru-RU', en: 'en-GB', de: 'de-DE', fr: 'fr-FR', zh: 'zh-CN' };
 
-  var T = {
-    ru: {
-      title: 'FinderBike - аренда байков на Пхукете через подбор',
-      skip: 'Перейти к заявке',
-      'nav.bikes': 'Байки и цены', 'nav.how': 'Как это работает', 'nav.terms': 'Условия', 'nav.faq': 'Вопросы',
-      'cta.header': 'Заявка',
-      'hero.h1': 'Байк на Пхукете без 30 сообщений в прокаты',
-      'hero.lead': 'Напишите даты и район. В течение часа пришлю 3 лучших варианта у\u00a0проверенных прокатов, с видео конкретного байка. Цена как в самом прокате, для вас бесплатно',
-      'hero.cta1': 'Подобрать байк', 'hero.cta2': 'Смотреть цены',
-      'fact.1': '3 варианта за час', 'fact.2': 'Видео байка до брони', 'fact.3': 'Цена и залог письменно',
-      'chat.label': 'Пример ответа на заявку', 'chat.name': 'Дмитрий | FinderBike', 'chat.status': 'подбор байков на Пхукете',
-      'chat.q': 'Привет! Нужен скутер на декабрь, живу в Кароне, будем ездить вдвоём. Опыт 2 года',
-      'chat.a': 'Вот 3 варианта на 1-31 декабря, Карон:<br>1. Click 160 ABS - 5 500 ฿ в месяц<br>2. PCX 160 ABS - 7 000 ฿ в месяц<br>3. ADV 160 ABS - 7 500 ฿ в месяц<br>Залог 3 000 ฿, доставка в Карон бесплатно<br><br>Я бы взял PCX: вдвоём на подъёмах тянет уверенно',
-      'chat.video': 'Видео PCX 160 ABS: со всех сторон, пробег, запуск',
-      'honest.t': 'FinderBike - это сервис подбора, а не прокат',
-      'honest.p': 'Байк выдаёт проверенный прокат-партнёр, договор аренды заключается с ним, цена такая же, как у него. Для вас услуга бесплатна: прокат платит мне процент со своей цены',
-      'how.t': 'Как это работает',
-      'how.1t': 'Вы пишете заявку', 'how.1p': 'Даты, район, что нужно, опыт и бюджет. Через форму ниже или сразу в мессенджер',
-      'how.2t': 'Я сравниваю прокаты', 'how.2p': 'В течение часа присылаю 3 лучших варианта: цена и залог письменно, видео конкретного байка',
-      'how.3t': 'Вы забираете байк', 'how.3p': 'Бронирую у проката и присылаю номер брони. Забираете байк в прокате или вам его привозят',
-      'how.note': 'Отвечаю с 8:00 до 23:00. Заявку после 20:00 подтверждаю у проката утром',
-      'bikes.t': 'Байки и цены',
-      'bikes.sub': '15 моделей Honda у основного проката-партнёра. Видео выбранного байка пришлю до брони. Нет нужного у него - найду у других',
-      'bikes.caption': 'Цены высокого сезона, до 31 марта 2027. Точную цену на ваши даты подтвержу в течение часа. RoadSync - версия, где смартфон подключается к приборной панели. Машины и мотоциклы - по запросу',
-      'per.0': 'День', 'per.1': 'Неделя', 'per.2': 'Месяц', 'per.3': 'От 3 мес',
-      'suf.0': 'в день', 'suf.1': 'за неделю', 'suf.2': 'в месяц', 'suf.3': 'в месяц при аренде от 3 месяцев',
-      'cls.all': 'Все', 'cls.125': '110-125 cc', 'cls.160': '160 cc', 'cls.350': '350 cc',
-      'card.dep': 'Залог', 'card.btn': 'Хочу этот', 'card.two': 'Для двоих и подъёмов', 'card.photoNote': 'На фото версия RoadSync',
-      'card.alt': 'Honda {name}, фото проката-партнёра',
-      'why.t': 'Почему через меня',
-      'why.story': 'Я сам искал байк на полтора месяца и написал в 30 прокатов. Цены на один и тот же байк отличались сильно, условия тоже. Теперь у меня таблица цен и условий прокатов по всему острову, и я подбираю байк за вас',
-      'why.sign': 'Дмитрий, FinderBike',
-      'why.1t': 'Лучший прокат из 30, которые я проверил сам', 'why.1p': 'Нет байка у него - найду у других. Прокаты по всему острову, так что найду, даже если рядом всё разобрали',
-      'why.2t': 'Видео конкретного байка до брони', 'why.2p': 'Видите именно тот байк, который получите: со всех сторон, пробег, запуск двигателя',
-      'why.3t': 'Цена и залог письменно', 'why.3p': 'Всё оговорено до брони, никаких сюрпризов при получении',
-      'why.4t': 'Проблема с прокатом - решаю я', 'why.4p': 'Пишете мне, я разбираюсь с прокатом. Прокат подвёл клиента - убираю его из своего списка',
-      'terms.t': 'Условия аренды',
-      'terms.sub': 'Так у основного проката-партнёра. Если подберу байк у другого проката, его условия пришлю письменно до брони',
-      'terms.1t': 'Паспорт остаётся у вас', 'terms.1p': 'Прокат делает копию паспорта. Залог только деньгами: 3 000 ฿ за байк до 160 cc, 7 000 ฿ за 350 cc. Можно долларами, евро, USDT или рублями наличными',
-      'terms.2t': 'Что входит в цену', 'terms.2p': 'Два шлема и медицинская страховка до 50 000 ฿ при ДТП. Сам байк не застрахован: повреждения и угон оплачивает арендатор',
-      'terms.3t': 'Доставка', 'terms.3p': 'При аренде от 5 дней бесплатно в одну сторону в Карон, Кату, Бангтао и Сурин. В другие районы платно, цена зависит от расстояния',
-      'terms.4t': 'Оплата и продление', 'terms.4p': 'Оплата сразу за весь срок, при досрочном возврате деньги не возвращают. Продлить можно удалённо, ставка при этом не растёт',
-      'terms.5t': 'Способы оплаты', 'terms.5p': 'Наличные баты, перевод на счёт проката, рубли по СБП, USDT. Картой можно, но с наценкой 7%',
-      'terms.6t': 'Опыт и права', 'terms.6p': 'Нужен опыт вождения: новичкам без опыта байк не дают. За езду без прав категории A полиция штрафует на 1 000 ฿',
-      'req.t': 'Заявка на подбор',
-      'req.sub': 'Заполните, что знаете, и отправьте в удобный мессенджер. Откроется чат со мной, где заявка уже набрана, останется нажать «Отправить»',
-      'req.direct': 'Или напишите сразу:',
-      'f.dates': 'Даты', 'f.from': 'С', 'f.to': 'По', 'f.area': 'Район', 'f.areaOther': 'Напишите район или отель',
-      'f.what': 'Что нужно', 'f.whatHint': 'Машины и мотоциклы подбираю по запросу: напишу, что есть на ваши даты',
-      'f.model': 'Модель', 'f.modelAny': 'На ваш выбор',
-      'f.exp': 'Опыт вождения', 'f.expHint': 'Честно: новичкам без опыта прокаты байк не дают. Лучше начать с нескольких занятий с инструктором',
-      'f.budget': 'Бюджет', 'f.budgetPh': 'Например, до 6 000 ฿ в месяц',
-      'f.comment': 'Комментарий', 'f.commentPh': 'Например: ездим вдвоём, нужен багажник',
-      'f.sendTg': 'Отправить в Telegram', 'f.sendWa': 'Отправить в WhatsApp',
-      'f.privacy': 'Сайт ничего не сохраняет: заявка уходит только в ваш чат со мной',
-      areas: ['Карон', 'Ката', 'Патонг', 'Камала', 'Сурин', 'Бангтао', 'Най Янг (аэропорт)', 'Раваи', 'Най Харн', 'Чалонг', 'Пхукет-таун', 'Другой'],
-      what: ['Скутер', 'Мотоцикл', 'Машина'],
-      exp: ['Нет опыта', 'До года', '1-3 года', 'Больше 3 лет'],
-      'msg.hello': 'Здравствуйте! Заявка с сайта FinderBike',
-      'msg.dates': 'Даты', 'msg.noDates': 'пока не знаю точно', 'msg.area': 'Район', 'msg.what': 'Нужно',
-      'msg.model': 'Модель', 'msg.exp': 'Опыт вождения', 'msg.budget': 'Бюджет', 'msg.comment': 'Комментарий',
-      'msg.bike': 'Здравствуйте! Хочу арендовать {name}. Даты: ',
-      'faq.t': 'Частые вопросы',
-      'faq.1q': 'Почему для меня бесплатно?', 'faq.1a': 'Прокат платит мне комиссию из своей цены. Для вас цена такая же, как если прийти в прокат самому',
-      'faq.2q': 'Зачем мне вы, если можно написать в прокат самому?', 'faq.2a': 'Можно. Я экономлю ваше время: сравниваю цены и условия по всему острову, присылаю видео конкретного байка и фиксирую цену и залог письменно. Цена для вас та же',
-      'faq.3q': 'Нужны ли права?', 'faq.3a': 'Нужны права с открытой категорией на мотоцикл: международные или тайские. Без них штраф на полицейских проверках, и страховка может не покрыть ДТП',
-      'faq.4q': 'Я раньше не ездил, можно взять байк?', 'faq.4a': 'Честно: новичкам без опыта прокаты байк не дают, и правильно делают. На Пхукете левостороннее движение, крутые серпантины между Патонгом, Кароном и Катой, в дождь асфальт скользкий. Лучше начать с нескольких занятий с инструктором',
-      'faq.5q': 'Если уеду раньше, вернут деньги?', 'faq.5a': 'У основного проката нет: оплата за весь срок договора, за неиспользованные дни деньги не возвращают. Не уверены в сроке - берите месяц и продлевайте удалённо, ставка при продлении не вырастет',
-      'faq.6q': 'Можно заплатить рублями?', 'faq.6a': 'Да, у части прокатов можно перевести рубли по СБП, не нужно искать обменник. Подберу такие варианты',
-      'faq.7q': 'Что если с байком или прокатом проблема?', 'faq.7a': 'Пишите мне, решу с прокатом. Совет: при получении снимите байк на видео со всех сторон. Если при возврате прокат увидит царапину, у вас будет доказательство, что она была раньше',
-      'foot.p': 'Подбор байков в аренду на Пхукете. FinderBike не прокат: договор аренды вы заключаете с прокатом-партнёром'
-    },
-    en: {
-      title: 'FinderBike - scooter rental in Phuket, matched for you',
-      skip: 'Skip to the request form',
-      'nav.bikes': 'Bikes & prices', 'nav.how': 'How it works', 'nav.terms': 'Rental terms', 'nav.faq': 'FAQ',
-      'cta.header': 'Request',
-      'hero.h1': 'A bike in Phuket without messaging 30 rental shops',
-      'hero.lead': 'Send me your dates and area. Within an hour I’ll send you the 3 best options from trusted rental shops, with a video of the actual bike. Same price as at the shop, free for you',
-      'hero.cta1': 'Find me a bike', 'hero.cta2': 'See prices',
-      'fact.1': '3 options within an hour', 'fact.2': 'Bike video before you book', 'fact.3': 'Price and deposit in writing',
-      'chat.label': 'Example reply to a request', 'chat.name': 'Dmitriy | FinderBike', 'chat.status': 'bike matching in Phuket',
-      'chat.q': 'Hi! I need a scooter for December, staying in Karon, two of us riding. 2 years of experience',
-      'chat.a': 'Here are 3 options for Dec 1-31, Karon:<br>1. Click 160 ABS - ฿5,500 a month<br>2. PCX 160 ABS - ฿7,000 a month<br>3. ADV 160 ABS - ฿7,500 a month<br>Deposit ฿3,000, free delivery to Karon<br><br>I’d take the PCX: it climbs hills easily with two people',
-      'chat.video': 'PCX 160 ABS video: all sides, mileage, engine start',
-      'honest.t': 'FinderBike is a matching service, not a rental shop',
-      'honest.p': 'Your bike comes from a trusted partner rental shop. You sign the rental agreement with them, and the price is the same as theirs. My service is free for you: the shop pays me a commission out of its price',
-      'how.t': 'How it works',
-      'how.1t': 'You send a request', 'how.1p': 'Dates, area, what you need, experience and budget. Use the form below or message me directly',
-      'how.2t': 'I compare rental shops', 'how.2p': 'Within an hour I send you the 3 best options: price and deposit in writing, plus a video of the actual bike',
-      'how.3t': 'You get your bike', 'how.3p': 'I book it with the shop and send you a booking number. Pick the bike up at the shop or have it delivered',
-      'how.note': 'I reply from 8 am to 11 pm. Requests after 8 pm are confirmed with the shop the next morning',
-      'bikes.t': 'Bikes and prices',
-      'bikes.sub': '15 Honda models at my main partner shop. I’ll send you a video of your bike before you book. If the bike you want isn’t there, I’ll find it at another shop',
-      'bikes.caption': 'High season prices, valid until March 31, 2027. I’ll confirm the exact price for your dates within an hour. RoadSync means your phone connects to the dashboard. Cars and motorcycles on request',
-      'per.0': 'Day', 'per.1': 'Week', 'per.2': 'Month', 'per.3': '3+ months',
-      'suf.0': 'per day', 'suf.1': 'per week', 'suf.2': 'per month', 'suf.3': 'per month, renting 3+ months',
-      'cls.all': 'All', 'cls.125': '110-125 cc', 'cls.160': '160 cc', 'cls.350': '350 cc',
-      'card.dep': 'Deposit', 'card.btn': 'I want this one', 'card.two': 'Good for two and hills', 'card.photoNote': 'Photo: RoadSync version',
-      'card.alt': 'Honda {name}, photo by the partner shop',
-      'why.t': 'Why book through me',
-      'why.story': 'I looked for a bike for 6 weeks myself and messaged 30 rental shops. Prices for the same bike were very different, and so were the terms. Now I keep a table of prices and terms of rental shops across the island, and I find the bike for you',
-      'why.sign': 'Dmitriy, FinderBike',
-      'why.1t': 'The best shop out of 30 I checked myself', 'why.1p': 'If it doesn’t have your bike, I’ll find one elsewhere. I work with shops across the island, so I’ll find a bike even when everything nearby is taken',
-      'why.2t': 'A video of the actual bike before you book', 'why.2p': 'You see the exact bike you’ll get: all sides, mileage, engine start',
-      'why.3t': 'Price and deposit in writing', 'why.3p': 'Everything is agreed before you book, no surprises at pickup',
-      'why.4t': 'A problem with the shop? I handle it', 'why.4p': 'Message me and I’ll sort it out with the shop. A shop that lets a customer down is off my list',
-      'terms.t': 'Rental terms',
-      'terms.sub': 'These are my main partner shop’s terms. If I find you a bike at another shop, I’ll send you its terms in writing before you book',
-      'terms.1t': 'Your passport stays with you', 'terms.1p': 'The shop makes a copy of your passport. The deposit is cash only: ฿3,000 for bikes up to 160 cc, ฿7,000 for 350 cc. You can pay it in dollars, euros, USDT or rubles in cash',
-      'terms.2t': 'Included in the price', 'terms.2p': 'Two helmets and medical insurance up to ฿50,000 in case of an accident. The bike itself is not insured: you pay for damage or theft',
-      'terms.3t': 'Delivery', 'terms.3p': 'For rentals of 5+ days, one-way delivery is free to Karon, Kata, Bang Tao and Surin. Other areas are paid, the price depends on distance',
-      'terms.4t': 'Payment and extension', 'terms.4p': 'You pay for the whole period upfront, no refund for an early return. You can extend remotely, and the rate doesn’t go up',
-      'terms.5t': 'Payment methods', 'terms.5p': 'Cash in baht, bank transfer to the shop, rubles via SBP, USDT. Cards are accepted with a 7% surcharge',
-      'terms.6t': 'Experience and license', 'terms.6p': 'You need riding experience: shops don’t rent to complete beginners. Riding without a category A license means a ฿1,000 police fine',
-      'req.t': 'Request a bike',
-      'req.sub': 'Fill in what you know and send it via your messenger. A chat with me opens with your request already typed in, just tap Send',
-      'req.direct': 'Or message me directly:',
-      'f.dates': 'Dates', 'f.from': 'From', 'f.to': 'To', 'f.area': 'Area', 'f.areaOther': 'Type your area or hotel',
-      'f.what': 'What you need', 'f.whatHint': 'Cars and motorcycles on request: I’ll tell you what’s available for your dates',
-      'f.model': 'Model', 'f.modelAny': 'Your recommendation',
-      'f.exp': 'Riding experience', 'f.expHint': 'Honestly: shops don’t rent bikes to complete beginners. Better start with a few lessons with an instructor',
-      'f.budget': 'Budget', 'f.budgetPh': 'E.g. up to ฿6,000 a month',
-      'f.comment': 'Comment', 'f.commentPh': 'E.g. two of us riding, need a rear rack',
-      'f.sendTg': 'Send via Telegram', 'f.sendWa': 'Send via WhatsApp',
-      'f.privacy': 'This site stores nothing: your request goes only to your chat with me',
-      areas: ['Karon', 'Kata', 'Patong', 'Kamala', 'Surin', 'Bang Tao', 'Nai Yang (airport)', 'Rawai', 'Nai Harn', 'Chalong', 'Phuket Town', 'Other'],
-      what: ['Scooter', 'Motorcycle', 'Car'],
-      exp: ['None', 'Under 1 year', '1-3 years', '3+ years'],
-      'msg.hello': 'Hi! Request from the FinderBike website',
-      'msg.dates': 'Dates', 'msg.noDates': 'not sure yet', 'msg.area': 'Area', 'msg.what': 'Need',
-      'msg.model': 'Model', 'msg.exp': 'Riding experience', 'msg.budget': 'Budget', 'msg.comment': 'Comment',
-      'msg.bike': 'Hi! I’d like to rent a {name}. Dates: ',
-      'faq.t': 'FAQ',
-      'faq.1q': 'Why is it free for me?', 'faq.1a': 'The shop pays me a commission out of its own price. You pay the same as if you walked into the shop yourself',
-      'faq.2q': 'Why not just message the shop myself?', 'faq.2a': 'You can. I save you time: I compare prices and terms across the island, send you a video of the actual bike and get the price and deposit in writing. Your price stays the same',
-      'faq.3q': 'Do I need a license?', 'faq.3a': 'You need a license with a motorcycle category: international or Thai. Without it you get fined at police checkpoints, and insurance may not cover an accident',
-      'faq.4q': 'I’ve never ridden before. Can I rent a bike?', 'faq.4a': 'Honestly: shops don’t rent bikes to complete beginners, and they’re right. Phuket drives on the left, the roads between Patong, Karon and Kata are steep and winding, and asphalt gets slippery in the rain. Better start with a few lessons with an instructor',
-      'faq.5q': 'If I leave early, do I get a refund?', 'faq.5a': 'Not at my main partner shop: you pay for the whole rental period, unused days are not refunded. Not sure how long you’ll stay? Take a month and extend remotely, the rate won’t go up',
-      'faq.6q': 'Can I pay in rubles?', 'faq.6a': 'Yes, some shops accept rubles via SBP transfer, so you don’t need an exchange office. I’ll find those options for you',
-      'faq.7q': 'What if there’s a problem with the bike or the shop?', 'faq.7a': 'Message me and I’ll sort it out with the shop. Tip: film the bike from all sides when you pick it up. If the shop finds a scratch on return, you’ll have proof it was already there',
-      'foot.p': 'Bike rental matching in Phuket. FinderBike is not a rental shop: you sign the rental agreement with the partner shop'
-    }
+  var lang = document.documentElement.getAttribute('data-lang');
+  if (CODES.indexOf(lang) < 0) lang = 'en';
+
+  var S = {
+    period: 2, from: '', to: '', area: '', sort: 'asc',
+    cc: {}, two: false, abs: false, rs: false
   };
+  var R = { bike: null, what: 0, exp: null };
 
-  // ---------- language ----------
-  function detectLang() {
-    var q = new URLSearchParams(location.search).get('lang');
-    if (q === 'ru' || q === 'en') return q;
-    try { var s = localStorage.getItem('fb-lang'); if (s === 'ru' || s === 'en') return s; } catch (e) {}
-    var langs = navigator.languages || [navigator.language || 'ru'];
-    for (var i = 0; i < langs.length; i++) {
-      var l = String(langs[i]).toLowerCase().slice(0, 2);
-      if (['ru', 'uk', 'be', 'kk'].indexOf(l) > -1) return 'ru';
-      if (l === 'en') return 'en';
-    }
-    return 'en';
+  function $(id) { return document.getElementById(id); }
+  function byId(id) { return BIKES.filter(function (b) { return b.id === id; })[0]; }
+  function t(k, lg) {
+    lg = lg || lang;
+    var v = L[lg] && L[lg][k];
+    if (v == null || v === '') v = (L.en[k] != null && lg !== 'ru') ? L.en[k] : L.ru[k];
+    return v == null ? '' : v;
   }
-  var lang = detectLang();
-  var period = 2;
-  var cls = 'all';
-  var state = { area: null, what: 0, exp: null };
-
-  function t(k) { return (T[lang] && T[lang][k] != null) ? T[lang][k] : (T.ru[k] || ''); }
-  function money(n) {
-    return lang === 'ru'
-      ? n.toLocaleString('ru-RU').replace(/\s/g, ' ') + ' ฿'
-      : '฿' + n.toLocaleString('en-US');
+  function f(k, vars, lg) {
+    var s = t(k, lg);
+    for (var x in vars) s = s.split('{' + x + '}').join(vars[x]);
+    return s;
   }
-
-  function applyLang() {
-    document.documentElement.lang = lang;
-    document.title = t('title');
-    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
-    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    document.querySelectorAll('[data-i18n-attr]').forEach(function (el) {
-      var p = el.getAttribute('data-i18n-attr').split(':'); el.setAttribute(p[0], t(p[1]));
-    });
-    document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
-    // RU: главная кнопка Telegram, EN: главная WhatsApp
-    var send = document.getElementById('sendBtns');
-    var tg = document.getElementById('sendTg'), wa = document.getElementById('sendWa');
-    if (lang === 'en') send.insertBefore(wa, tg); else send.insertBefore(tg, wa);
-    var dock = document.getElementById('dock');
-    var dTg = document.getElementById('dockTg'), dWa = document.getElementById('dockWa');
-    if (lang === 'en') dock.insertBefore(dWa, dTg); else dock.insertBefore(dTg, dWa);
-    renderControls(); renderGrid(); renderForm(); updateLinks();
+  function money(n, lg) {
+    lg = lg || lang;
+    if (lg === 'en' || lg === 'zh') return '฿' + n.toLocaleString('en-US');
+    if (lg === 'de') return n.toLocaleString('de-DE') + '\u00a0฿';
+    return n.toLocaleString('ru-RU').replace(/[\s\u202f]/g, '\u00a0') + '\u00a0฿';
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function icon(id) { return '<svg aria-hidden="true"><use href="#' + id + '"/></svg>'; }
+  function isoToday() {
+    var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
   }
 
-  // ---------- catalog ----------
-  function renderControls() {
-    var seg = document.getElementById('period');
-    seg.innerHTML = '';
-    [0, 1, 2, 3].forEach(function (i) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('role', 'radio'); b.textContent = t('per.' + i);
-      b.setAttribute('aria-checked', String(i === period));
-      b.addEventListener('click', function () { period = i; renderControls(); updatePrices(true); });
-      seg.appendChild(b);
-    });
-    var ch = document.getElementById('cls');
-    ch.innerHTML = '';
-    ['all', '125', '160', '350'].forEach(function (c) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'chip'; b.setAttribute('role', 'radio'); b.textContent = t('cls.' + c);
-      b.setAttribute('aria-checked', String(c === cls));
-      b.addEventListener('click', function () { cls = c; renderControls(); filterGrid(); });
-      ch.appendChild(b);
-    });
+  // ---------- dates / tariff ----------
+  function days() {
+    if (!S.from || !S.to) return null;
+    var n = Math.round((new Date(S.to + 'T12:00:00') - new Date(S.from + 'T12:00:00')) / 864e5);
+    return n > 0 ? n : null;
   }
-
-  function renderGrid() {
-    var grid = document.getElementById('grid');
-    grid.innerHTML = '';
-    BIKES.forEach(function (b) {
-      var li = document.createElement('li');
-      li.className = 'card'; li.dataset.cls = b.cls; li.dataset.id = b.id;
-      var tags = [];
-      if (CC[b.cls]) tags.push('<span class="tag">' + CC[b.cls] + '</span>');
-      if (b.two) tags.push('<span class="tag tag--two">' + t('card.two') + '</span>');
-      li.innerHTML =
-        '<div class="card__img"><img loading="lazy" decoding="async" width="800" height="800" src="img/' + (b.img || b.id) + '.webp" alt="' + t('card.alt').replace('{name}', b.name) + '">' +
-        (b.photoNote ? '<span class="card__note">' + t('card.photoNote') + '</span>' : '') + '</div>' +
-        '<div class="card__body"><span class="card__brand">Honda</span><h3 class="card__name">' + b.name + '</h3>' +
-        (tags.length ? '<div class="card__tags">' + tags.join('') + '</div>' : '') +
-        '<div class="card__price"><span class="price"></span><span class="per"></span><span class="dep">' + t('card.dep') + ' ' + money(b.dep) + '</span></div>' +
-        '<button type="button" class="btn btn--soft card__btn">' + t('card.btn') + '</button></div>';
-      li.querySelector('.card__btn').addEventListener('click', function () { chooseBike(b); });
-      grid.appendChild(li);
-    });
-    updatePrices(false); filterGrid();
+  function tierFor(d) { return d < 7 ? 0 : d < 30 ? 1 : d < 90 ? 2 : 3; }
+  function tier() { var d = days(); return d ? tierFor(d) : S.period; }
+  function perDay(b, ti) { return ti === 0 ? null : Math.round(b.p[ti] / (ti === 1 ? 7 : 30)); }
+  function daysText(n, lg) {
+    lg = lg || lang;
+    var cat = 'many';
+    try { cat = new Intl.PluralRules(LOCALE[lg]).select(n); } catch (e) {}
+    var k = cat === 'one' ? 'days.one' : cat === 'few' ? 'days.few' : 'days.many';
+    return f(k, { n: n }, lg);
   }
-  function updatePrices(anim) {
-    document.querySelectorAll('#grid .card').forEach(function (li) {
-      var b = BIKES.filter(function (x) { return x.id === li.dataset.id; })[0];
-      var p = li.querySelector('.price');
-      p.textContent = money(b.p[period]);
-      li.querySelector('.per').textContent = t('suf.' + period);
-      if (anim) { p.classList.remove('is-swap'); void p.offsetWidth; p.classList.add('is-swap'); }
-    });
-  }
-  function filterGrid() {
-    document.querySelectorAll('#grid .card').forEach(function (li) { li.hidden = !(cls === 'all' || li.dataset.cls === cls); });
-  }
-
-  // ---------- form ----------
-  function pickGroup(id, items, key) {
-    var box = document.getElementById(id);
-    box.innerHTML = '';
-    box.setAttribute('role', 'radiogroup');
-    items.forEach(function (label, i) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('role', 'radio'); b.textContent = label;
-      b.setAttribute('aria-checked', String(state[key] === i));
-      b.addEventListener('click', function () {
-        state[key] = state[key] === i && key !== 'what' ? null : i;
-        renderForm(); updateLinks();
-      });
-      box.appendChild(b);
-    });
-  }
-  function renderForm() {
-    var areas = t('areas');
-    pickGroup('fArea', areas, 'area');
-    pickGroup('fWhat', t('what'), 'what');
-    pickGroup('fExp', t('exp'), 'exp');
-    var other = document.getElementById('fAreaOther');
-    other.hidden = state.area !== areas.length - 1;
-    document.getElementById('hintWhat').hidden = !(state.what === 1 || state.what === 2);
-    document.getElementById('hintExp').hidden = state.exp !== 0;
-    var sel = document.getElementById('fModel');
-    var cur = sel.value;
-    sel.innerHTML = '<option value="">' + t('f.modelAny') + '</option>' +
-      BIKES.map(function (b) { return '<option value="' + b.id + '">Honda ' + b.name + '</option>'; }).join('');
-    sel.value = cur;
-    sel.disabled = state.what !== 0;
-  }
-  function fmtDate(v) {
-    if (!v) return '';
+  function fmtShort(v) {
     var d = new Date(v + 'T12:00:00');
-    return lang === 'ru'
+    return d.toLocaleDateString(LOCALE[lang], { day: 'numeric', month: 'short' });
+  }
+  function fmtMsgDate(v, ml) {
+    if (!v) return '?';
+    var d = new Date(v + 'T12:00:00');
+    return ml === 'ru'
       ? d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
       : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
-  function buildMessage() {
-    var lines = [t('msg.hello')];
-    var from = document.getElementById('fFrom').value, to = document.getElementById('fTo').value;
-    var dates = from || to ? (fmtDate(from) || '?') + ' - ' + (fmtDate(to) || '?') : t('msg.noDates');
-    lines.push(t('msg.dates') + ': ' + dates);
+
+  // ---------- flags ----------
+  function star(cx, cy, r, rot) {
+    var pts = [];
+    for (var i = 0; i < 10; i++) {
+      var a = (rot || 0) + Math.PI / 5 * i - Math.PI / 2, rr = i % 2 ? r * 0.382 : r;
+      pts.push((cx + rr * Math.cos(a)).toFixed(2) + ',' + (cy + rr * Math.sin(a)).toFixed(2));
+    }
+    return '<polygon fill="#ffde00" points="' + pts.join(' ') + '"/>';
+  }
+  function flag(code) {
+    var b = '<svg viewBox="0 0 30 20" preserveAspectRatio="none" aria-hidden="true">';
+    if (code === 'ru') b += '<rect width="30" height="20" fill="#fff"/><rect y="6.67" width="30" height="6.67" fill="#0039a6"/><rect y="13.33" width="30" height="6.67" fill="#d52b1e"/>';
+    else if (code === 'de') b += '<rect width="30" height="20" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>';
+    else if (code === 'fr') b += '<rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#0055a4"/><rect x="20" width="10" height="20" fill="#ef4135"/>';
+    else if (code === 'zh') b += '<rect width="30" height="20" fill="#de2910"/>' + star(5, 5, 3) + star(10, 2, 1, .4) + star(12, 4, 1, .9) + star(12, 7, 1, 0) + star(10, 9, 1, .4);
+    else b += '<rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0L0 20" stroke="#c8102e" stroke-width="1.6"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#c8102e" stroke-width="3.4"/>';
+    return b + '</svg>';
+  }
+
+  // ---------- language ----------
+  function renderLangMenu() {
+    $('langFlag').innerHTML = flag(lang);
+    $('langCode').textContent = lang.toUpperCase();
+    $('langMenu').innerHTML = LANGS.map(function (x) {
+      return '<li><button type="button" data-lang="' + x.code + '" lang="' + x.code + '" aria-current="' + (x.code === lang) + '">' +
+        '<span class="flag">' + flag(x.code) + '</span><span>' + x.name + '</span><span class="lang__mc">' + x.code.toUpperCase() + '</span></button></li>';
+    }).join('');
+  }
+  function toggleLang(open) {
+    var btn = $('langBtn'), menu = $('langMenu');
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      var cur = menu.querySelector('[aria-current="true"]') || menu.querySelector('button');
+      cur.focus();
+    }
+  }
+  function setLang(code) {
+    lang = code;
+    try { localStorage.setItem('fb-lang', code); } catch (e) {}
+    try { var u = new URL(location.href); u.searchParams.set('lang', code); history.replaceState(null, '', u); } catch (e) {}
+    applyLang();
+  }
+  function applyLang() {
+    var html = document.documentElement;
+    html.lang = lang === 'zh' ? 'zh-Hans' : lang;
+    html.setAttribute('data-lang', lang);
+    document.title = t('meta.title');
+    var md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute('content', t('meta.desc'));
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-attr]').forEach(function (el) {
+      el.getAttribute('data-i18n-attr').split(',').forEach(function (pair) {
+        var p = pair.split(':'); el.setAttribute(p[0], t(p[1]));
+      });
+    });
+    $('ftReply').hidden = !L[lang]['foot.reply'];
+    // RU: главная кнопка Telegram, остальные языки: WhatsApp
+    var send = $('reqSend'), tg = $('sendTg'), wa = $('sendWa');
+    if (lang === 'ru') send.insertBefore(tg, wa); else send.insertBefore(wa, tg);
+    renderLangMenu();
+    renderAreaSelect($('sArea'), S.area);
+    renderSort();
+    renderAll();
+    if ($('gal').open && galBike) renderGalPanel();
+    if ($('req').open) renderReq();
+    html.className = html.className.replace(' i18n-wait', '');
+  }
+
+  // ---------- search ----------
+  function renderAreaSelect(sel, val) {
     var areas = t('areas');
-    if (state.area != null) {
-      var a = state.area === areas.length - 1 ? (document.getElementById('fAreaOther').value.trim() || areas[state.area]) : areas[state.area];
-      lines.push(t('msg.area') + ': ' + a);
+    sel.innerHTML = '<option value="">' + esc(t('s.areaAny')) + '</option>' +
+      areas.map(function (a, i) { return '<option value="' + i + '">' + esc(a) + '</option>'; }).join('');
+    sel.value = val;
+  }
+  function syncDateMins(fromEl, toEl) {
+    var today = isoToday();
+    fromEl.min = today;
+    toEl.min = fromEl.value || today;
+    if (toEl.value && fromEl.value && toEl.value <= fromEl.value) toEl.value = '';
+  }
+
+  // ---------- results ----------
+  function renderSort() {
+    var sel = $('sort');
+    sel.innerHTML = '<option value="asc">' + esc(t('sort.asc')) + '</option><option value="desc">' + esc(t('sort.desc')) + '</option>';
+    sel.value = S.sort;
+  }
+  function activeFilters() {
+    var n = Object.keys(S.cc).filter(function (k) { return S.cc[k]; }).length;
+    return n + (S.two ? 1 : 0) + (S.abs ? 1 : 0) + (S.rs ? 1 : 0);
+  }
+  function visible() {
+    var anyCc = Object.keys(S.cc).some(function (k) { return S.cc[k]; });
+    var ti = tier();
+    var list = BIKES.filter(function (b) {
+      if (anyCc && !S.cc[b.cls]) return false;
+      if (S.two && !b.two) return false;
+      if (S.abs && !b.abs) return false;
+      if (S.rs && !b.rs) return false;
+      return true;
+    });
+    list = list.map(function (b, i) { return { b: b, i: BIKES.indexOf(b) }; });
+    list.sort(function (x, y) {
+      var d = x.b.p[ti] - y.b.p[ti];
+      if (S.sort === 'desc') d = -d;
+      return d || x.i - y.i;
+    });
+    return list.map(function (x) { return x.b; });
+  }
+  function renderFilters(box) {
+    var cnt = function (fn) { return BIKES.filter(fn).length; };
+    var ck = function (attr, val, label, n, on, hint) {
+      return '<label class="ck"><input type="checkbox" data-f="' + attr + '"' + (val ? ' value="' + val + '"' : '') + (on ? ' checked' : '') + '>' +
+        '<span class="ck__box">' + icon('i-check') + '</span><span class="ck__l">' + esc(label) + '</span><span class="ck__n">' + n + '</span></label>' +
+        (hint ? '<span class="ck__hint">' + esc(hint) + '</span>' : '');
+    };
+    var h = '<div class="flt__g"><h3 class="flt__t">' + esc(t('flt.cc')) + '</h3>' +
+      CLS.map(function (c) { return ck('cc', c[0], c[1], cnt(function (b) { return b.cls === c[0]; }), !!S.cc[c[0]]); }).join('') + '</div>' +
+      '<div class="flt__g"><h3 class="flt__t">' + esc(t('flt.opt')) + '</h3>' +
+      ck('two', '', t('flt.two'), cnt(function (b) { return b.two; }), S.two) +
+      ck('abs', '', t('flt.abs'), cnt(function (b) { return b.abs; }), S.abs) +
+      ck('rs', '', t('flt.rs'), cnt(function (b) { return b.rs; }), S.rs, t('d.rs')) + '</div>';
+    if (activeFilters()) h += '<button type="button" class="link flt__reset" data-reset>' + esc(t('flt.reset')) + '</button>';
+    box.innerHTML = h;
+  }
+  function checksFor(b, short) {
+    var out = [t('ft.helmets'), t('ft.passport')];
+    var d = days();
+    if (S.area === '' || +S.area === t('areas').length - 1) out.push(t('ft.delFree5'));
+    else {
+      var ai = +S.area, area = t('areas')[ai];
+      if (FREE_AREAS.indexOf(ai) > -1) out.push(d && d >= 5 ? f('ft.delFree', { area: area }) : t('ft.delFree5'));
+      else out.push(f('ft.delPaid', { area: area }));
     }
-    lines.push(t('msg.what') + ': ' + t('what')[state.what]);
-    if (state.what === 0) {
-      var m = document.getElementById('fModel').value;
-      var bike = BIKES.filter(function (b) { return b.id === m; })[0];
-      lines.push(t('msg.model') + ': ' + (bike ? 'Honda ' + bike.name : t('f.modelAny').toLowerCase()));
+    if (!short) out.push(t('ft.video'));
+    return out;
+  }
+  function priceLabel(ti) { return t('suf.' + ti); }
+  function cardHTML(b, ti) {
+    var n = (G[b.id] || []).length;
+    var tags = '<span class="tag">' + b.cc + ' cc</span>' + (b.two ? '<span class="tag tag--two">' + esc(t('flt.two')) + '</span>' : '');
+    var pd = perDay(b, ti);
+    var name = 'Honda ' + b.name;
+    return '<li class="card" data-id="' + b.id + '">' +
+      '<button type="button" class="card__ph" data-gal aria-label="' + esc(t('card.more') + ': ' + name) + '">' +
+        '<img src="img/' + b.id + '.webp" width="800" height="800" loading="lazy" decoding="async" alt="' + esc(f('card.alt', { name: b.name })) + '">' +
+        (n ? '<span class="card__phn">' + icon('i-cam') + n + '</span>' : '') +
+      '</button>' +
+      '<div class="card__main"><span class="brand">Honda</span>' +
+        '<h3 class="card__name"><button type="button" data-gal>' + esc(b.name) + '</button></h3>' +
+        '<div class="tags">' + tags + '</div>' +
+        '<button type="button" class="link card__more" data-gal>' + esc(t('card.more')) + icon('i-arrow') + '</button>' +
+      '</div>' +
+      '<ul class="checks">' + checksFor(b, true).map(function (c) { return '<li>' + icon('i-check') + '<span>' + esc(c) + '</span></li>'; }).join('') + '</ul>' +
+      '<div class="card__buy">' +
+        '<div class="card__price"><b class="js-price">' + money(b.p[ti]) + '</b><span>' + esc(priceLabel(ti)) + '</span></div>' +
+        (pd ? '<p class="card__sub">' + esc(f('card.perDay', { p: money(pd) })) + '</p>' : '') +
+        '<p class="card__sub">' + esc(f('card.dep', { p: money(b.dep) })) + '</p>' +
+        '<button type="button" class="btn btn--accent card__pick" data-pick>' + esc(t('card.pick')) + '</button>' +
+      '</div></li>';
+  }
+  var lastTier = null;
+  function renderAll() {
+    var ti = tier(), d = days();
+    // period / dates bar
+    $('barPeriod').hidden = !!d;
+    $('barDates').hidden = !d;
+    $('bar').classList.toggle('is-dates', !!d);
+    if (d) {
+      $('barDatesTxt').textContent = f('res.dates', { from: fmtShort(S.from), to: fmtShort(S.to), days: daysText(d) });
+      $('barTier').textContent = f('res.tier', { tier: t('tier.' + ti) });
     }
-    if (state.exp != null) lines.push(t('msg.exp') + ': ' + t('exp')[state.exp]);
-    var budget = document.getElementById('fBudget').value.trim();
-    if (budget) lines.push(t('msg.budget') + ': ' + budget);
-    var c = document.getElementById('fComment').value.trim();
-    if (c) lines.push(t('msg.comment') + ': ' + c);
+    var seg = $('period');
+    seg.innerHTML = [0, 1, 2, 3].map(function (i) {
+      return '<button type="button" role="radio" data-per="' + i + '" aria-checked="' + (i === S.period) + '">' + esc(t('per.' + i)) + '</button>';
+    }).join('');
+    // filters
+    renderFilters($('fltSide'));
+    renderFilters($('fltSheet'));
+    var nf = activeFilters();
+    $('fltBadge').hidden = !nf; $('fltBadge').textContent = nf;
+    // list
+    var list = visible();
+    $('cards').innerHTML = list.map(function (b) { return cardHTML(b, ti); }).join('');
+    $('empty').hidden = list.length > 0;
+    $('count').textContent = f('res.count', { n: list.length, total: BIKES.length });
+    $('fltShow').textContent = f('flt.show', { n: list.length });
+    if (lastTier !== null && lastTier !== ti) {
+      document.querySelectorAll('#cards .js-price').forEach(function (el) { el.classList.add('price-swap'); });
+    }
+    lastTier = ti;
+  }
+
+  // ---------- gallery ----------
+  var galBike = null, galIdx = 0, galRaf = 0;
+  function openGal(b, start) {
+    galBike = b; galIdx = start || 0;
+    var sizes = G[b.id] || [];
+    var name = 'Honda ' + b.name;
+    $('galTrack').innerHTML = sizes.map(function (wh, i) {
+      return '<div class="gal__slide" role="group" aria-roledescription="slide"><img src="img/g/' + b.id + '/' + (i + 1) + '.webp" width="' + wh[0] + '" height="' + wh[1] + '"' +
+        (i < 2 ? '' : ' loading="lazy"') + ' decoding="async" alt="' + esc(name + ', ' + f('d.counter', { i: i + 1, n: sizes.length })) + '"></div>';
+    }).join('');
+    $('galThumbs').innerHTML = sizes.map(function (wh, i) {
+      return '<button type="button" data-i="' + i + '" aria-label="' + esc(f('d.counter', { i: i + 1, n: sizes.length })) + '"><img src="img/g/' + b.id + '/' + (i + 1) + 't.webp" width="200" height="200" loading="lazy" alt=""></button>';
+    }).join('');
+    renderGalPanel();
+    showDlg($('gal'));
+    $('galTrack').scrollLeft = 0;
+    $('gal').querySelector('.gal__in').scrollTop = 0;
+    if (galIdx) goGal(galIdx, true);
+    galSync();
+  }
+  function renderGalPanel() {
+    var b = galBike, ti = tier();
+    $('galName').textContent = b.name;
+    $('galTags').innerHTML = '<span class="tag">' + b.cc + ' cc</span>' + (b.two ? '<span class="tag tag--two">' + esc(t('flt.two')) + '</span>' : '') +
+      (b.abs ? '<span class="tag">ABS</span>' : '') + (b.rs ? '<span class="tag">RoadSync</span>' : '');
+    var notes = [];
+    if (b.rs) notes.push(t('d.rs'));
+    if (b.studio) notes.push(t('d.studio'));
+    $('galNote').hidden = !notes.length;
+    $('galNote').textContent = notes.join('. ');
+    $('galPrices').innerHTML = [0, 1, 2, 3].map(function (i) {
+      var cur = i === ti ? ' class="is-cur"' : '';
+      var pd = perDay(b, i);
+      return '<dt' + cur + '>' + esc(t('per.' + i)) + '</dt><dd' + cur + '>' + money(b.p[i]) +
+        (i === 3 ? '<small>' + esc(t('suf.2')) + '</small>' : pd ? '<small>' + esc(f('card.perDay', { p: money(pd) })) + '</small>' : '') + '</dd>';
+    }).join('');
+    $('galDep').innerHTML = '<b>' + esc(t('d.dep')) + ':</b> ' + money(b.dep);
+    $('galChecks').innerHTML = checksFor(b, false).map(function (c) { return '<li>' + icon('i-check') + '<span>' + esc(c) + '</span></li>'; }).join('');
+    $('galCtaPrice').innerHTML = '<b>' + money(b.p[ti]) + '</b><span>' + esc(priceLabel(ti)) + '</span>';
+    galSync();
+  }
+  function goGal(i, instant) {
+    var tr = $('galTrack'), n = tr.children.length;
+    galIdx = Math.max(0, Math.min(n - 1, i));
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    tr.scrollTo({ left: galIdx * tr.clientWidth, behavior: instant || reduce ? 'auto' : 'smooth' });
+    galSync();
+  }
+  function galSync() {
+    var tr = $('galTrack'), n = tr.children.length;
+    if (!n) return;
+    $('galCount').textContent = f('d.counter', { i: galIdx + 1, n: n });
+    $('galPrev').disabled = galIdx === 0;
+    $('galNext').disabled = galIdx === n - 1;
+    var th = $('galThumbs').children;
+    for (var i = 0; i < th.length; i++) {
+      var on = i === galIdx;
+      th[i].setAttribute('aria-current', String(on));
+      if (on && th[i].scrollIntoView && $('gal').open) {
+        var box = $('galThumbs'), l = th[i].offsetLeft - box.clientWidth / 2 + th[i].clientWidth / 2;
+        box.scrollTo({ left: l, behavior: 'auto' });
+      }
+    }
+  }
+
+  // ---------- request ----------
+  function openReq(b) {
+    R.bike = b || null;
+    if (b) R.what = 0;
+    renderReq();
+    if ($('gal').open) closeDlg($('gal'));
+    showDlg($('req'));
+    $('req').querySelector('.req__in').scrollTop = 0;
+  }
+  function pickGroup(box, items, key) {
+    box.innerHTML = items.map(function (label, i) {
+      return '<button type="button" role="radio" data-k="' + key + '" data-i="' + i + '" aria-checked="' + (R[key] === i) + '">' + esc(label) + '</button>';
+    }).join('');
+  }
+  function renderReq() {
+    var b = R.bike, ti = tier();
+    $('reqT').textContent = b ? f('r.tBike', { name: b.name }) : t('r.tAny');
+    var bk = $('reqBike');
+    bk.hidden = !b;
+    if (b) {
+      var pd = perDay(b, ti);
+      bk.innerHTML = '<img src="img/' + b.id + '.webp" width="800" height="800" alt="">' +
+        '<div><b>Honda ' + esc(b.name) + '</b><span>' + money(b.p[ti]) + ' ' + esc(priceLabel(ti)) +
+        (pd ? ' · ' + esc(f('card.perDay', { p: money(pd) })) : '') + ' · ' + esc(f('card.dep', { p: money(b.dep) })) + '</span></div>';
+    }
+    $('rFrom').value = S.from; $('rTo').value = S.to;
+    syncDateMins($('rFrom'), $('rTo'));
+    renderAreaSelect($('rArea'), S.area);
+    var other = $('rAreaOther');
+    other.hidden = S.area === '' || +S.area !== t('areas').length - 1;
+    $('rWhatWrap').hidden = !!b;
+    pickGroup($('rWhat'), t('what'), 'what');
+    $('rWhatHint').hidden = !(R.what === 1 || R.what === 2);
+    pickGroup($('rExp'), t('exp'), 'exp');
+    $('rExpHint').hidden = R.exp !== 0;
+    updateLinks();
+  }
+  function buildMessage() {
+    var ml = lang === 'ru' ? 'ru' : 'en';
+    var M = function (k) { return t(k, ml); };
+    var lines = [M('msg.hello')];
+    var d = days();
+    var dates = S.from || S.to ? fmtMsgDate(S.from, ml) + ' - ' + fmtMsgDate(S.to, ml) + (d ? ' (' + daysText(d, ml) + ')' : '') : M('msg.noDates');
+    lines.push(M('msg.dates') + ': ' + dates);
+    if (S.area !== '') {
+      var areas = t('areas', ml), ai = +S.area;
+      var a = ai === areas.length - 1 ? ($('rAreaOther').value.trim() || areas[ai]) : areas[ai];
+      lines.push(M('msg.area') + ': ' + a);
+    }
+    var what = R.bike ? 0 : R.what;
+    lines.push(M('msg.what') + ': ' + t('what', ml)[what]);
+    if (what === 0) lines.push(M('msg.model') + ': ' + (R.bike ? 'Honda ' + R.bike.name : M('msg.any')));
+    if (R.exp != null) lines.push(M('msg.exp') + ': ' + t('exp', ml)[R.exp]);
+    var budget = $('rBudget').value.trim();
+    if (budget) lines.push(M('msg.budget') + ': ' + budget);
+    var c = $('rComment').value.trim();
+    if (c) lines.push(M('msg.comment') + ': ' + c);
     return lines.join('\n');
   }
-  function tgLink(text) { return 'https://t.me/' + TG_USER + '?text=' + encodeURIComponent(text); }
-  function waLink(text) { return 'https://wa.me/' + WA_PHONE + '?text=' + encodeURIComponent(text); }
   function updateLinks() {
-    var msg = buildMessage();
-    document.getElementById('sendTg').href = tgLink(msg);
-    document.getElementById('sendWa').href = waLink(msg);
+    var msg = encodeURIComponent(buildMessage());
+    $('sendTg').href = 'https://t.me/' + TG_USER + '?text=' + msg;
+    $('sendWa').href = 'https://wa.me/' + WA_PHONE + '?text=' + msg;
   }
-  function chooseBike(b) {
-    state.what = 0;
-    renderForm();
-    document.getElementById('fModel').value = b.id;
-    updateLinks();
-    var form = document.getElementById('form');
-    document.getElementById('request').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-    form.classList.remove('is-flash'); void form.offsetWidth; form.classList.add('is-flash');
-    setTimeout(function () { try { document.getElementById('fFrom').focus({ preventScroll: true }); } catch (e) {} }, 600);
+
+  // ---------- dialogs ----------
+  function lockCount() { return document.querySelectorAll('dialog[open]').length; }
+  function showDlg(d) {
+    if (d.open) return;
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+    document.documentElement.classList.add('is-locked');
+  }
+  function closeDlg(d) {
+    if (!d.open) return;
+    if (typeof d.close === 'function') d.close(); else d.removeAttribute('open');
+  }
+  function onDlgClose() {
+    if (!lockCount()) document.documentElement.classList.remove('is-locked');
   }
 
   // ---------- init ----------
-  document.addEventListener('DOMContentLoaded', function () {
-    var today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-    var iso = today.toISOString().slice(0, 10);
-    var fFrom = document.getElementById('fFrom'), fTo = document.getElementById('fTo');
-    fFrom.min = iso; fTo.min = iso;
-    fFrom.addEventListener('change', function () { if (fFrom.value) { fTo.min = fFrom.value; if (fTo.value && fTo.value < fFrom.value) fTo.value = ''; } updateLinks(); });
-    ['fTo', 'fAreaOther', 'fModel', 'fBudget', 'fComment'].forEach(function (id) {
-      var el = document.getElementById(id);
-      el.addEventListener('input', updateLinks); el.addEventListener('change', updateLinks);
+  function init() {
+    var sFrom = $('sFrom'), sTo = $('sTo');
+    syncDateMins(sFrom, sTo);
+
+    // language menu
+    $('langBtn').addEventListener('click', function (e) { e.stopPropagation(); toggleLang($('langMenu').hidden); });
+    $('langMenu').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-lang]');
+      if (!btn) return;
+      toggleLang(false); $('langBtn').focus();
+      if (btn.dataset.lang !== lang) setLang(btn.dataset.lang);
     });
-    ['sendTg', 'sendWa'].forEach(function (id) {
-      document.getElementById(id).addEventListener('click', function () { updateLinks(); });
+    $('langMenu').addEventListener('keydown', function (e) {
+      var items = Array.prototype.slice.call(this.querySelectorAll('button'));
+      var i = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      else if (e.key === 'Escape') { toggleLang(false); $('langBtn').focus(); }
+      else if (e.key === 'Tab') toggleLang(false);
     });
-    document.querySelectorAll('.lang button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        lang = b.dataset.lang;
-        try { localStorage.setItem('fb-lang', lang); } catch (e) {}
-        var u = new URL(location.href); u.searchParams.set('lang', lang); history.replaceState(null, '', u);
-        applyLang();
+    document.addEventListener('click', function (e) { if (!$('langMenu').hidden && !e.target.closest('#lang')) toggleLang(false); });
+
+    // search
+    $('sArea').addEventListener('change', function () { S.area = this.value; renderAll(); });
+    sFrom.addEventListener('change', function () { syncDateMins(sFrom, sTo); S.from = sFrom.value; S.to = sTo.value; renderAll(); });
+    sTo.addEventListener('change', function () { S.to = sTo.value; renderAll(); });
+    $('search').addEventListener('submit', function (e) {
+      e.preventDefault();
+      S.area = $('sArea').value; S.from = sFrom.value; S.to = sTo.value;
+      renderAll();
+      $('results').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    });
+    $('barChange').addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      setTimeout(function () { try { sFrom.focus({ preventScroll: true }); } catch (e) {} }, 400);
+    });
+
+    // period / sort / filters
+    $('period').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-per]'); if (!b) return;
+      S.period = +b.dataset.per; renderAll();
+    });
+    $('sort').addEventListener('change', function () { S.sort = this.value; renderAll(); });
+    function onFilter(e) {
+      var el = e.target;
+      if (!el.matches('input[data-f]')) return;
+      var k = el.dataset.f;
+      if (k === 'cc') S.cc[el.value] = el.checked; else S[k] = el.checked;
+      renderAll();
+    }
+    $('fltSide').addEventListener('change', onFilter);
+    $('fltSheet').addEventListener('change', onFilter);
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-reset]')) { S.cc = {}; S.two = S.abs = S.rs = false; renderAll(); }
+    });
+    $('fltBtn').addEventListener('click', function () { showDlg($('fsheet')); });
+
+    // cards
+    $('cards').addEventListener('click', function (e) {
+      var card = e.target.closest('.card'); if (!card) return;
+      var b = byId(card.dataset.id);
+      if (e.target.closest('[data-pick]')) openReq(b);
+      else if (e.target.closest('[data-gal]')) openGal(b, 0);
+    });
+    $('ctaBtn').addEventListener('click', function () { openReq(null); });
+
+    // gallery
+    var tr = $('galTrack');
+    tr.addEventListener('scroll', function () {
+      cancelAnimationFrame(galRaf);
+      galRaf = requestAnimationFrame(function () {
+        var i = Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth));
+        if (i !== galIdx) { galIdx = i; galSync(); }
+      });
+    }, { passive: true });
+    $('galPrev').addEventListener('click', function () { goGal(galIdx - 1); });
+    $('galNext').addEventListener('click', function () { goGal(galIdx + 1); });
+    $('galThumbs').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) goGal(+b.dataset.i); });
+    $('gal').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goGal(galIdx - 1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); goGal(galIdx + 1); }
+    });
+    window.addEventListener('resize', function () { if ($('gal').open) goGal(galIdx, true); });
+    $('galPick').addEventListener('click', function () { openReq(galBike); });
+
+    // request
+    var rFrom = $('rFrom'), rTo = $('rTo');
+    rFrom.addEventListener('change', function () { syncDateMins(rFrom, rTo); S.from = rFrom.value; S.to = rTo.value; sFrom.value = S.from; sTo.value = S.to; syncDateMins(sFrom, sTo); renderAll(); renderReq(); });
+    rTo.addEventListener('change', function () { S.to = rTo.value; sTo.value = S.to; renderAll(); renderReq(); });
+    $('rArea').addEventListener('change', function () { S.area = this.value; $('sArea').value = S.area; renderAll(); renderReq(); if (!$('rAreaOther').hidden) $('rAreaOther').focus(); });
+    ['rAreaOther', 'rBudget', 'rComment'].forEach(function (id) { $(id).addEventListener('input', updateLinks); });
+    $('req').addEventListener('click', function (e) {
+      var b = e.target.closest('.pick [data-k]'); if (!b) return;
+      var k = b.dataset.k, i = +b.dataset.i;
+      R[k] = (R[k] === i && k !== 'what') ? null : i;
+      renderReq();
+      var again = $('req').querySelector('.pick [data-k="' + k + '"][data-i="' + i + '"]');
+      if (again) again.focus();
+    });
+    ['sendTg', 'sendWa'].forEach(function (id) { $(id).addEventListener('click', updateLinks); });
+
+    // dialogs: close buttons, backdrop, scroll lock
+    document.querySelectorAll('dialog').forEach(function (d) {
+      d.addEventListener('close', onDlgClose);
+      d.addEventListener('click', function (e) {
+        if (e.target.closest('[data-close]')) { closeDlg(d); return; }
+        if (e.target === d) closeDlg(d);
       });
     });
-    applyLang();
 
-    // header border + mobile dock
-    var top = document.getElementById('top'), dock = document.getElementById('dock');
-    var heroCta = document.getElementById('heroCta'), req = document.getElementById('request');
-    var heroGone = false, reqIn = false;
-    function syncDock() {
-      var on = heroGone && !reqIn;
-      dock.classList.toggle('is-on', on);
-      dock.setAttribute('aria-hidden', String(!on));
-      dock.querySelectorAll('a').forEach(function (a) { a.tabIndex = on ? 0 : -1; });
-    }
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (e) { heroGone = !e[0].isIntersecting && e[0].boundingClientRect.top < 0; syncDock(); }).observe(heroCta);
-      new IntersectionObserver(function (e) { reqIn = e[0].isIntersecting; syncDock(); }, { rootMargin: '0px 0px -30% 0px' }).observe(req);
-    }
-    window.addEventListener('scroll', function () { top.classList.toggle('is-scrolled', window.scrollY > 4); }, { passive: true });
-  });
+    applyLang();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
