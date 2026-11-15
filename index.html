@@ -33,6 +33,7 @@ var d=document.documentElement;d.className+=' js';d.setAttribute('data-lang',l);
 <link rel="stylesheet" href="assets/fonts.css">
 <link rel="stylesheet" href="assets/style.css">
 <script defer src="assets/i18n.js"></script>
+<script defer src="assets/price.js"></script>
 <script defer src="assets/app.js"></script>
 </head>
 <body>
@@ -105,6 +106,10 @@ FORM: одна страница, 5 языков переключателем с�
 
   <section class="wrap results" id="results" aria-labelledby="resT">
     <aside class="side" aria-labelledby="sideT">
+      <button type="button" class="mapbtn" data-map>
+        <span class="mapbtn__pin"><svg aria-hidden="true"><use href="#i-pin"/></svg></span>
+        <span class="mapbtn__t" data-i18n="map.open">Показать на карте</span>
+      </button>
       <div class="side__box">
         <h2 class="side__t" id="sideT" data-i18n="flt.t">Фильтры</h2>
         <div class="flt" id="fltSide"></div>
@@ -118,14 +123,16 @@ FORM: одна страница, 5 языков переключателем с�
       <div class="ctrl">
       <div class="bar" id="bar">
         <div class="bar__period" id="barPeriod">
-          <span class="bar__l" id="perL" data-i18n="res.for">Цены за</span>
-          <div class="seg" id="period" role="radiogroup" aria-labelledby="perL"></div>
+          <span class="bar__l" id="perL" data-i18n="dur.l">Срок аренды</span>
+          <div class="seg seg--dur" id="period" role="radiogroup" aria-labelledby="perL"></div>
+          <p class="bar__note" id="barNote"></p>
         </div>
         <div class="bar__dates" id="barDates" hidden>
           <svg aria-hidden="true"><use href="#i-cal"/></svg>
           <div>
             <p><b id="barDatesTxt"></b> <span id="barTier"></span> <button type="button" class="link" id="barChange" data-i18n="res.change">Изменить</button></p>
-            <p class="bar__exact" data-i18n="res.exact">Точную сумму на ваши даты подтвержу в течение часа</p>
+            <p class="bar__exact" data-i18n="res.exact">Сумма посчитана по прайсу проката-партнёра. Наличие на ваши даты подтвержу в течение часа</p>
+            <p class="bar__exact bar__low" id="barLow" data-i18n="res.low" hidden>С 1 апреля действуют цены низкого сезона, они уже учтены в сумме</p>
           </div>
         </div>
       </div>
@@ -135,6 +142,9 @@ FORM: одна страница, 5 языков переключателем с�
           <span class="sr-only" data-i18n="sort.l">Сортировка</span>
           <select id="sort"></select>
         </label>
+        <button type="button" class="btn btn--line tools__map" data-map>
+          <svg aria-hidden="true"><use href="#i-pin"/></svg><span data-i18n="map.open">Показать на карте</span>
+        </button>
         <button type="button" class="btn btn--line tools__flt" id="fltBtn">
           <svg aria-hidden="true"><use href="#i-filter"/></svg><span data-i18n="flt.t">Фильтры</span><span class="badge" id="fltBadge" hidden></span>
         </button>
@@ -145,7 +155,7 @@ FORM: одна страница, 5 языков переключателем с�
         <p data-i18n="flt.empty">Под эти фильтры ничего не подошло</p>
         <button type="button" class="btn btn--line" data-reset data-i18n="flt.reset">Сбросить фильтры</button>
       </div>
-      <p class="list__caption" data-i18n="res.caption">Цены высокого сезона, до 31 марта 2027. 15 моделей Honda у основного проката-партнёра. Нет нужного байка у него - найду у других. Машины и мотоциклы - по запросу</p>
+      <p class="list__caption" data-i18n="res.caption">Цены основного проката-партнёра, 15 моделей Honda. Высокий сезон до 31 марта 2027, с 1 апреля цены ниже. Нет нужного байка у него - найду у других. Машины и мотоциклы - по запросу</p>
     </div>
   </section>
 
@@ -239,11 +249,12 @@ FORM: одна страница, 5 языков переключателем с�
         <div class="tags" id="galTags"></div>
         <p class="note" id="galNote" hidden></p>
         <h3 class="gal__h" data-i18n="d.prices">Цены</h3>
+        <div class="gcalc" id="galCalc"></div>
         <dl class="ptab" id="galPrices"></dl>
         <p class="gal__dep" id="galDep"></p>
         <h3 class="gal__h" data-i18n="d.incl">Что вы получаете</h3>
         <ul class="checks" id="galChecks"></ul>
-        <p class="gal__season" data-i18n="d.season">Цены высокого сезона, до 31 марта 2027</p>
+        <p class="gal__season" data-i18n="d.season">Высокий сезон: 15 октября - 31 марта. С 1 апреля цены ниже</p>
       </div>
       <div class="gal__cta">
         <div class="gal__ctaPrice" id="galCtaPrice"></div>
@@ -307,6 +318,25 @@ FORM: одна страница, 5 языков переключателем с�
     </div>
     <div class="sheet__body flt" id="fltSheet"></div>
     <div class="sheet__foot"><button type="button" class="btn btn--accent btn--block" id="fltShow" data-close></button></div>
+  </div>
+</dialog>
+
+<!-- Карта прокатов -->
+<dialog class="dlg mapd" id="mapd" aria-labelledby="mapT">
+  <div class="mapd__in">
+    <header class="mapd__hdr">
+      <div class="mapd__ttl">
+        <h2 id="mapT" data-i18n="map.t">Прокаты на карте</h2>
+        <p class="mapd__leg"><span class="leg leg--ok"></span><span data-i18n="map.legOk">Партнёр, цены на сайте</span><span class="leg leg--soon"></span><span data-i18n="map.legSoon">На проверке</span></p>
+      </div>
+      <button type="button" class="dlg__x dlg__x--flat" data-close data-i18n-attr="aria-label:d.close" aria-label="Закрыть"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="mapd__body">
+      <div class="mapd__map" id="mapBox"></div>
+      <p class="mapd__state" id="mapState" data-i18n="map.load">Загружаю карту…</p>
+      <p class="mapd__hint" id="mapHint" data-i18n="map.hint">Нажмите на метку, чтобы увидеть байки и цены</p>
+      <aside class="mapd__panel" id="mapPanel" hidden></aside>
+    </div>
   </div>
 </dialog>
 
