@@ -42,10 +42,9 @@
     cc: {}, two: false, abs: false, rs: false
   };
   var R = { bike: null, picks: false, what: 0, exp: null };
-  // Вид выдачи и подборка (лайки) живут только в браузере посетителя
-  S.view = 'swipe'; S.picks = [];
+  // Подборка из карточек (лайки) живёт только в браузере посетителя
+  S.picks = [];
   try {
-    var sv = localStorage.getItem('fb-view'); if (sv === 'list' || sv === 'swipe') S.view = sv;
     var sp = JSON.parse(localStorage.getItem('fb-picks') || '[]');
     if (Array.isArray(sp)) S.picks = sp.filter(function (id) { return BIKES.some(function (b) { return b.id === id; }); });
   } catch (e) {}
@@ -283,7 +282,6 @@
         '<img src="img/' + b.id + '.webp" width="800" height="800" loading="lazy" decoding="async" alt="' + esc(f('card.alt', { name: b.name })) + '">' +
         (n ? '<span class="card__phn">' + icon('i-cam') + n + '</span>' : '') +
       '</button>' +
-      heartBtn(b, 'card__heart') +
       '<div class="card__main"><span class="brand">Honda</span>' +
         '<h3 class="card__name"><button type="button" data-gal>' + esc(b.name) + '</button></h3>' +
         '<div class="tags">' + tags + '</div>' +
@@ -306,11 +304,6 @@
     if (!on && i > -1) S.picks.splice(i, 1);
     savePicks(); renderPicks();
   }
-  function heartBtn(b, cls) {
-    var on = picked(b.id);
-    return '<button type="button" class="heart ' + cls + (on ? ' is-on' : '') + '" data-heart="' + b.id + '" aria-pressed="' + on + '" aria-label="' +
-      esc((on ? t('picks.remove') : t('picks.add')) + ': Honda ' + b.name) + '">' + icon(on ? 'i-heart' : 'i-heart-o') + '</button>';
-  }
   function renderPicks() {
     var n = S.picks.length, bar = $('picks');
     bar.hidden = !n;
@@ -319,19 +312,22 @@
       $('picksImgs').innerHTML = S.picks.slice(-3).map(function (id) { return '<img src="img/' + id + '.webp" width="800" height="800" alt="">'; }).join('');
       $('picksN').textContent = f('picks.bar', { n: n });
     }
-    document.querySelectorAll('[data-heart]').forEach(function (el) {
-      var b = byId(el.dataset.heart); if (b) el.outerHTML = heartBtn(b, el.className.replace(/\b(heart|is-on)\b/g, '').trim());
-    });
-    if (S.view === 'swipe' && !$('deckEnd').hidden) renderDeck();
+    if ($('swd').open && !$('deckEnd').hidden) renderDeck();
+    renderSwdFoot();
+  }
+  function renderSwdFoot() {
+    var k = S.picks.length;
+    $('swdFoot').hidden = !k || !$('deckEnd').hidden;
+    if (k) $('swdN').textContent = f('picks.bar', { n: k });
   }
 
   // ---------- колода свайпов ----------
   var reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  function renderView() {
-    var sw = S.view === 'swipe', has = visible().length > 0;
-    $('deck').hidden = !sw || !has;
-    $('cards').hidden = sw;
-    $('view').querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.view === S.view)); });
+  function openDeck() {
+    D.key = '';
+    showDlg($('swd'));
+    renderDeck();
+    $('deckStack').focus({ preventScroll: true });
   }
   function deckCard(b, pos, i, n) {
     var q = price(b), pm = priceMain(q);
@@ -358,6 +354,7 @@
     $('deckActs').hidden = end;
     $('deckHint').hidden = end;
     $('deckStack').hidden = end;
+    renderSwdFoot();
     if (end) {
       var k = S.picks.length;
       $('deckEndT').textContent = k ? f('sw.endPicks', { n: k }) : t('sw.end');
@@ -437,8 +434,8 @@
     $('fltBadge').hidden = !nf; $('fltBadge').textContent = nf;
     var list = visible();
     $('cards').innerHTML = list.map(function (b) { return cardHTML(b); }).join('');
-    renderView();
-    if (S.view === 'swipe') renderDeck();
+    $('swOpen').hidden = !list.length;
+    if ($('swd').open) renderDeck();
     $('empty').hidden = list.length > 0;
     $('count').textContent = f('res.count', { n: list.length, total: BIKES.length });
     $('fltShow').textContent = f('flt.show', { n: list.length });
@@ -526,6 +523,7 @@
     if (b) R.what = 0;
     renderReq();
     if ($('gal').open) closeDlg($('gal'));
+    if ($('swd').open) closeDlg($('swd'));
     showDlg($('req'));
     $('req').querySelector('.req__in').scrollTop = 0;
   }
@@ -826,17 +824,11 @@
 
     // подборка и колода
     document.addEventListener('click', function (e) {
-      var h = e.target.closest('[data-heart]');
-      if (h) { e.stopPropagation(); setPick(h.dataset.heart, !picked(h.dataset.heart)); return; }
       var u = e.target.closest('[data-unpick]');
       if (u) { setPick(u.dataset.unpick, false); if (S.picks.length) renderReq(); else closeDlg($('req')); }
     }, true);
-    $('view').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-view]'); if (!b || b.dataset.view === S.view) return;
-      S.view = b.dataset.view;
-      try { localStorage.setItem('fb-view', S.view); } catch (er) {}
-      renderAll();
-    });
+    $('swOpen').addEventListener('click', openDeck);
+    $('swdSend').addEventListener('click', function () { openReq(null); });
     $('swNope').addEventListener('click', function () { fling(-1); });
     $('swLike').addEventListener('click', function () { fling(1); });
     $('swInfo').addEventListener('click', function () { var c = topCard(); if (c) openGal(byId(c.dataset.id), 0); });
