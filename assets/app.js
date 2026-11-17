@@ -41,7 +41,15 @@
     dur: null, from: '', to: '', area: '', sort: 'asc', point: '',
     cc: {}, two: false, abs: false, rs: false
   };
-  var R = { bike: null, what: 0, exp: null };
+  var R = { bike: null, picks: false, what: 0, exp: null };
+  // Вид выдачи и подборка (лайки) живут только в браузере посетителя
+  S.view = 'swipe'; S.picks = [];
+  try {
+    var sv = localStorage.getItem('fb-view'); if (sv === 'list' || sv === 'swipe') S.view = sv;
+    var sp = JSON.parse(localStorage.getItem('fb-picks') || '[]');
+    if (Array.isArray(sp)) S.picks = sp.filter(function (id) { return BIKES.some(function (b) { return b.id === id; }); });
+  } catch (e) {}
+  var D = { i: 0, key: '' };
 
   function $(id) { return document.getElementById(id); }
   function byId(id) { return BIKES.filter(function (b) { return b.id === id; })[0]; }
@@ -189,6 +197,7 @@
     renderAreaSelect($('sArea'), S.area);
     renderSort();
     renderAll();
+    renderPicks();
     if ($('gal').open && galBike) renderGalPanel();
     if ($('req').open) renderReq();
     applyMapLang();
@@ -274,6 +283,7 @@
         '<img src="img/' + b.id + '.webp" width="800" height="800" loading="lazy" decoding="async" alt="' + esc(f('card.alt', { name: b.name })) + '">' +
         (n ? '<span class="card__phn">' + icon('i-cam') + n + '</span>' : '') +
       '</button>' +
+      heartBtn(b, 'card__heart') +
       '<div class="card__main"><span class="brand">Honda</span>' +
         '<h3 class="card__name"><button type="button" data-gal>' + esc(b.name) + '</button></h3>' +
         '<div class="tags">' + tags + '</div>' +
@@ -287,6 +297,124 @@
         '<button type="button" class="btn btn--accent card__pick" data-pick>' + esc(t('card.pick')) + '</button>' +
       '</div></li>';
   }
+  // ---------- подборка ----------
+  function picked(id) { return S.picks.indexOf(id) > -1; }
+  function savePicks() { try { localStorage.setItem('fb-picks', JSON.stringify(S.picks)); } catch (e) {} }
+  function setPick(id, on) {
+    var i = S.picks.indexOf(id);
+    if (on && i < 0) S.picks.push(id);
+    if (!on && i > -1) S.picks.splice(i, 1);
+    savePicks(); renderPicks();
+  }
+  function heartBtn(b, cls) {
+    var on = picked(b.id);
+    return '<button type="button" class="heart ' + cls + (on ? ' is-on' : '') + '" data-heart="' + b.id + '" aria-pressed="' + on + '" aria-label="' +
+      esc((on ? t('picks.remove') : t('picks.add')) + ': Honda ' + b.name) + '">' + icon(on ? 'i-heart' : 'i-heart-o') + '</button>';
+  }
+  function renderPicks() {
+    var n = S.picks.length, bar = $('picks');
+    bar.hidden = !n;
+    document.documentElement.classList.toggle('has-picks', !!n);
+    if (n) {
+      $('picksImgs').innerHTML = S.picks.slice(-3).map(function (id) { return '<img src="img/' + id + '.webp" width="800" height="800" alt="">'; }).join('');
+      $('picksN').textContent = f('picks.bar', { n: n });
+    }
+    document.querySelectorAll('[data-heart]').forEach(function (el) {
+      var b = byId(el.dataset.heart); if (b) el.outerHTML = heartBtn(b, el.className.replace(/\b(heart|is-on)\b/g, '').trim());
+    });
+    if (S.view === 'swipe' && !$('deckEnd').hidden) renderDeck();
+  }
+
+  // ---------- колода свайпов ----------
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  function renderView() {
+    var sw = S.view === 'swipe', has = visible().length > 0;
+    $('deck').hidden = !sw || !has;
+    $('cards').hidden = sw;
+    $('view').querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.view === S.view)); });
+  }
+  function deckCard(b, pos, i, n) {
+    var q = price(b), pm = priceMain(q);
+    var meta = [b.cc + ' cc'];
+    if (b.two) meta.push(t('flt.two'));
+    if (b.abs) meta.push('ABS');
+    return '<article class="dc" data-id="' + b.id + '" data-pos="' + pos + '"' + (pos ? ' aria-hidden="true"' : '') + '>' +
+      '<img src="img/' + b.id + '.webp" width="800" height="800" ' + (pos > 1 ? 'loading="lazy" ' : '') + 'decoding="async" draggable="false" alt="' + esc(f('card.alt', { name: b.name })) + '">' +
+      '<span class="dc__stamp dc__stamp--like">' + esc(t('sw.likeStamp')) + '</span>' +
+      '<span class="dc__stamp dc__stamp--nope">' + esc(t('sw.nopeStamp')) + '</span>' +
+      '<span class="dc__n">' + esc(f('sw.count', { i: i + 1, n: n })) + '</span>' +
+      (picked(b.id) ? '<span class="dc__in">' + icon('i-heart') + esc(t('picks.in')) + '</span>' : '') +
+      '<div class="dc__body"><span class="dc__brand">Honda</span><h3 class="dc__name">' + esc(b.name) + '</h3>' +
+        '<p class="dc__meta">' + esc(meta.join(' · ')) + '</p>' +
+        '<p class="dc__price"><b>' + esc(pm.b) + '</b> <span>' + esc(pm.s) + '</span></p>' +
+        (q.n > 1 ? '<p class="dc__sub">' + esc(f('calc.total', { p: money(q.total), d: daysText(q.n) })) + '</p>' : '') +
+      '</div></article>';
+  }
+  function renderDeck() {
+    var list = visible(), key = list.map(function (b) { return b.id; }).join(',');
+    if (key !== D.key) { D.key = key; D.i = 0; }
+    var n = list.length, end = D.i >= n;
+    $('deckEnd').hidden = !end;
+    $('deckActs').hidden = end;
+    $('deckHint').hidden = end;
+    $('deckStack').hidden = end;
+    if (end) {
+      var k = S.picks.length;
+      $('deckEndT').textContent = k ? f('sw.endPicks', { n: k }) : t('sw.end');
+      $('deckSend').hidden = !k;
+      $('deckSend').textContent = t('picks.send');
+      return;
+    }
+    var h = '';
+    for (var j = Math.min(n - 1, D.i + 2); j >= D.i; j--) h += deckCard(list[j], j - D.i, j, n);
+    $('deckStack').innerHTML = h;
+    bindDrag();
+  }
+  function topCard() { return $('deckStack').querySelector('.dc[data-pos="0"]'); }
+  function fling(dir) {
+    var c = topCard(); if (!c || c.classList.contains('is-gone')) return;
+    var id = c.dataset.id;
+    if (dir > 0) setPick(id, true);
+    var done = function () { D.i++; renderDeck(); };
+    if (reduced.matches) { done(); return; }
+    c.classList.add('is-gone');
+    c.style.transition = 'transform .32s cubic-bezier(.3,.7,.3,1), opacity .32s';
+    c.style.transform = 'translate(' + (dir * 130) + '%, ' + (c._dy || 0) * 0.3 + 'px) rotate(' + (dir * 22) + 'deg)';
+    c.style.opacity = '0';
+    c.querySelector('.dc__stamp--' + (dir > 0 ? 'like' : 'nope')).style.opacity = 1;
+    setTimeout(done, 300);
+  }
+  function bindDrag() {
+    var c = topCard(); if (!c) return;
+    var x0 = 0, y0 = 0, dx = 0, dy = 0, on = false, moved = false, pid = null;
+    var like = c.querySelector('.dc__stamp--like'), nope = c.querySelector('.dc__stamp--nope');
+    function move(x, y) {
+      c.style.transform = 'translate(' + x + 'px,' + y * 0.25 + 'px) rotate(' + (x / 18) + 'deg)';
+      like.style.opacity = Math.max(0, Math.min(1, x / 90));
+      nope.style.opacity = Math.max(0, Math.min(1, -x / 90));
+    }
+    c.addEventListener('pointerdown', function (e) {
+      if (e.button) return;
+      on = true; moved = false; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; pid = e.pointerId;
+      c.style.transition = 'none';
+    });
+    c.addEventListener('pointermove', function (e) {
+      if (!on || e.pointerId !== pid) return;
+      dx = e.clientX - x0; dy = e.clientY - y0;
+      if (!moved && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { moved = true; try { c.setPointerCapture(pid); } catch (er) {} c.classList.add('is-drag'); }
+      if (moved) { c._dy = dy; move(dx, dy); }
+    });
+    function up(e) {
+      if (!on) return; on = false; c.classList.remove('is-drag');
+      if (moved && Math.abs(dx) > Math.min(110, c.offsetWidth * 0.28)) { fling(dx > 0 ? 1 : -1); return; }
+      c.style.transition = 'transform .3s cubic-bezier(.2,.9,.3,1.2)';
+      c.style.transform = ''; like.style.opacity = nope.style.opacity = '';
+      if (!moved && e.type === 'pointerup') openGal(byId(c.dataset.id), 0);
+    }
+    c.addEventListener('pointerup', up);
+    c.addEventListener('pointercancel', up);
+  }
+
   var lastKey = null;
   function renderAll() {
     var d = days(), n = term();
@@ -309,6 +437,8 @@
     $('fltBadge').hidden = !nf; $('fltBadge').textContent = nf;
     var list = visible();
     $('cards').innerHTML = list.map(function (b) { return cardHTML(b); }).join('');
+    renderView();
+    if (S.view === 'swipe') renderDeck();
     $('empty').hidden = list.length > 0;
     $('count').textContent = f('res.count', { n: list.length, total: BIKES.length });
     $('fltShow').textContent = f('flt.show', { n: list.length });
@@ -392,6 +522,7 @@
   // ---------- request ----------
   function openReq(b) {
     R.bike = b || null;
+    R.picks = !b && S.picks.length > 0;
     if (b) R.what = 0;
     renderReq();
     if ($('gal').open) closeDlg($('gal'));
@@ -405,9 +536,18 @@
   }
   function renderReq() {
     var b = R.bike;
-    $('reqT').textContent = b ? f('r.tBike', { name: b.name }) : t('r.tAny');
+    if (R.picks && !S.picks.length) R.picks = false;
+    $('reqT').textContent = b ? f('r.tBike', { name: b.name }) : R.picks ? f('r.tPicks', { n: S.picks.length }) : t('r.tAny');
     var bk = $('reqBike');
-    bk.hidden = !b;
+    bk.hidden = !b && !R.picks;
+    bk.classList.toggle('req__bike--list', R.picks && !b);
+    if (!b && R.picks) {
+      bk.innerHTML = S.picks.map(function (id) {
+        var pb = byId(id), q = price(pb), pm = priceMain(q);
+        return '<div class="rp"><img src="img/' + id + '.webp" width="800" height="800" alt=""><div><b>Honda ' + esc(pb.name) + '</b><span>' + esc(pm.b + ' ' + pm.s) + '</span></div>' +
+          '<button type="button" class="rp__x" data-unpick="' + id + '" aria-label="' + esc(t('picks.remove') + ': Honda ' + pb.name) + '">' + icon('i-x') + '</button></div>';
+      }).join('');
+    }
     if (b) {
       var q = price(b), pm = priceMain(q);
       bk.innerHTML = '<img src="img/' + b.id + '.webp" width="800" height="800" alt="">' +
@@ -419,7 +559,7 @@
     renderAreaSelect($('rArea'), S.area);
     var other = $('rAreaOther');
     other.hidden = S.area === '' || +S.area !== t('areas').length - 1;
-    $('rWhatWrap').hidden = !!b;
+    $('rWhatWrap').hidden = !!b || R.picks;
     pickGroup($('rWhat'), t('what'), 'what');
     $('rWhatHint').hidden = !(R.what === 1 || R.what === 2);
     pickGroup($('rExp'), t('exp'), 'exp');
@@ -438,9 +578,17 @@
       var a = ai === areas.length - 1 ? ($('rAreaOther').value.trim() || areas[ai]) : areas[ai];
       lines.push(M('msg.area') + ': ' + a);
     }
-    var what = R.bike ? 0 : R.what;
+    var what = R.bike || R.picks ? 0 : R.what;
     lines.push(M('msg.what') + ': ' + t('what', ml)[what]);
-    if (what === 0) lines.push(M('msg.model') + ': ' + (R.bike ? 'Honda ' + R.bike.name : M('msg.any')));
+    if (R.picks && !R.bike) {
+      lines.push(M('msg.picks') + ':');
+      S.picks.forEach(function (id) {
+        var pb = byId(id), q = price(pb);
+        lines.push('- Honda ' + pb.name + ': ' + (q.from
+          ? f('price.from', { p: money(q.perDay, ml) }, ml) + ' ' + t('suf.3', ml)
+          : money(q.perDay, ml) + ' ' + t('suf.0', ml) + ', ' + f('calc.total', { p: money(q.total, ml), d: daysText(q.n, ml) }, ml)));
+      });
+    } else if (what === 0) lines.push(M('msg.model') + ': ' + (R.bike ? 'Honda ' + R.bike.name : M('msg.any')));
     if (R.bike) {
       var q = price(R.bike);
       lines.push(M('msg.price') + ': ' + (q.from
@@ -676,6 +824,32 @@
     });
     $('ctaBtn').addEventListener('click', function () { openReq(null); });
 
+    // подборка и колода
+    document.addEventListener('click', function (e) {
+      var h = e.target.closest('[data-heart]');
+      if (h) { e.stopPropagation(); setPick(h.dataset.heart, !picked(h.dataset.heart)); return; }
+      var u = e.target.closest('[data-unpick]');
+      if (u) { setPick(u.dataset.unpick, false); if (S.picks.length) renderReq(); else closeDlg($('req')); }
+    }, true);
+    $('view').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-view]'); if (!b || b.dataset.view === S.view) return;
+      S.view = b.dataset.view;
+      try { localStorage.setItem('fb-view', S.view); } catch (er) {}
+      renderAll();
+    });
+    $('swNope').addEventListener('click', function () { fling(-1); });
+    $('swLike').addEventListener('click', function () { fling(1); });
+    $('swInfo').addEventListener('click', function () { var c = topCard(); if (c) openGal(byId(c.dataset.id), 0); });
+    $('deckStack').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); fling(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); fling(1); }
+      else if (e.key === 'Enter') { var c = topCard(); if (c) openGal(byId(c.dataset.id), 0); }
+    });
+    $('deckAgain').addEventListener('click', function () { D.i = 0; renderDeck(); });
+    $('deckSend').addEventListener('click', function () { openReq(null); });
+    $('picksGo').addEventListener('click', function () { openReq(null); });
+    $('picksView').addEventListener('click', function () { openReq(null); });
+
     // gallery
     var tr = $('galTrack');
     tr.addEventListener('scroll', function () {
@@ -736,6 +910,7 @@
     });
 
     applyLang();
+    renderPicks();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
