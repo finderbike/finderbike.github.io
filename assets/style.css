@@ -74,6 +74,8 @@ ul,ol{margin:0;padding:0;list-style:none}
 .hdr__in{display:flex;align-items:center;justify-content:space-between;height:var(--hdr-h);gap:12px}
 .logo{display:inline-flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font:700 18px/1 var(--f-head);font-family:"Unbounded",ui-sans-serif,system-ui,sans-serif;letter-spacing:-.02em}
 .logo__mark{width:26px;height:26px}
+.logo__word{white-space:nowrap}
+.logo__ft{display:inline-block;width:.6em;height:.765em;vertical-align:-.0164em;margin-right:-.02em;fill:currentColor}
 .logo--ink{color:var(--ink)}
 .logo--ink .logo__mark{color:var(--accent)}
 .hdr__right{display:flex;align-items:center;gap:6px}
