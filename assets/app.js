@@ -82,7 +82,11 @@
   // Что показать по байку: без срока - «от» по ставке 3+ месяцев текущего сезона, со сроком - сумма как в калькуляторе проката
   function price(b) {
     var n = term();
-    if (!n) return { from: true, total: b[season()][5], n: 0 };
+    if (!n) {
+      // Ставка 3+ месяцев за сутки: в высокий сезон m/30, в низкий прокат округляет вверх
+      var m = b[season()][5], sd = season() === 'h' ? Math.round(m / 30) : Math.ceil(m / 30);
+      return { from: true, total: m, perDay: sd, n: 0 };
+    }
     var q = PR.quote(b, n, startIso()); q.n = n; return q;
   }
   function durLabel(n, lg) {
@@ -91,13 +95,13 @@
   }
   function priceMain(q) {
     return q.from
-      ? { b: f('price.from', { p: money(q.total) }), s: t('suf.3') }
-      : { b: money(q.total), s: f('calc.for', { d: daysText(q.n) }) };
+      ? { b: f('price.from', { p: money(q.perDay) }), s: t('suf.3') }
+      : { b: money(q.perDay), s: t('suf.0') };
   }
   function priceSubs(q) {
     var out = [];
     if (q.from) return out;
-    if (q.n > 1) out.push('<p class="card__sub">' + esc(f('card.perDay', { p: money(q.perDay) })) + '</p>');
+    if (q.n > 1) out.push('<p class="card__sub">' + esc(f('calc.total', { p: money(q.total), d: daysText(q.n) })) + '</p>');
     if (q.save >= 5) out.push('<p class="save">' + esc(f('calc.save', { n: q.save })) + '</p>');
     if (q.cap) out.push('<p class="card__sub card__cap">' + esc(t('calc.cap' + q.cap)) + '</p>');
     return out;
@@ -349,12 +353,12 @@
     $('galNote').textContent = notes.join('. ');
     var q = price(b), pm = priceMain(q);
     $('galCalc').innerHTML = n
-      ? '<p class="gcalc__l">' + esc(t('d.calc')) + ': ' + esc(daysText(n)) + '</p><p class="gcalc__v"><b>' + esc(money(q.total)) + '</b></p>' + priceSubs(q).join('')
+      ? '<p class="gcalc__l">' + esc(t('d.calc')) + ': ' + esc(daysText(n)) + '</p><p class="gcalc__v"><b>' + esc(money(q.perDay)) + '</b> ' + esc(t('suf.0')) + '</p>' + priceSubs(q).join('')
       : '<p class="gcalc__l">' + esc(t('d.pickDur')) + '</p>';
     var cur = n ? PR.tierOf(n) : 5, g = b[sea];
     $('galPrices').innerHTML = [0, 1, 2, 3, 4, 5].map(function (i) {
       var c = i === cur ? ' class="is-cur"' : '';
-      return '<dt' + c + '>' + esc(t('g.' + i)) + '</dt><dd' + c + '>' + esc(f(i < 3 ? 'g.day' : 'g.month', { p: money(g[i]) })) + '</dd>';
+      return '<dt' + c + '>' + esc(t('g.' + i)) + '</dt><dd' + c + '>' + esc(f('g.day', { p: money(i < 3 ? g[i] : sea === 'h' ? Math.round(g[i] / 30) : Math.ceil(g[i] / 30)) })) + '</dd>';
     }).join('');
     $('galDep').innerHTML = '<b>' + esc(t('d.dep')) + ':</b> ' + money(b.dep);
     $('galChecks').innerHTML = checksFor(b, false).map(function (c) { return '<li>' + icon('i-check') + '<span>' + esc(c) + '</span></li>'; }).join('');
@@ -408,7 +412,7 @@
       var q = price(b), pm = priceMain(q);
       bk.innerHTML = '<img src="img/' + b.id + '.webp" width="800" height="800" alt="">' +
         '<div><b>Honda ' + esc(b.name) + '</b><span>' + esc(pm.b + ' ' + pm.s) +
-        (q.n > 1 ? ' · ' + esc(f('card.perDay', { p: money(q.perDay) })) : '') + ' · ' + esc(f('card.dep', { p: money(b.dep) })) + '</span></div>';
+        (q.n > 1 ? ' · ' + esc(f('calc.total', { p: money(q.total), d: daysText(q.n) })) : '') + ' · ' + esc(f('card.dep', { p: money(b.dep) })) + '</span></div>';
     }
     $('rFrom').value = S.from; $('rTo').value = S.to;
     syncDateMins($('rFrom'), $('rTo'));
@@ -440,8 +444,8 @@
     if (R.bike) {
       var q = price(R.bike);
       lines.push(M('msg.price') + ': ' + (q.from
-        ? f('price.from', { p: money(q.total, ml) }, ml) + ' ' + t('suf.3', ml)
-        : money(q.total, ml) + ' ' + f('calc.for', { d: daysText(q.n, ml) }, ml)));
+        ? f('price.from', { p: money(q.perDay, ml) }, ml) + ' ' + t('suf.3', ml)
+        : money(q.perDay, ml) + ' ' + t('suf.0', ml) + ', ' + f('calc.total', { p: money(q.total, ml), d: daysText(q.n, ml) }, ml)));
     }
     if (S.point) lines.push(M('msg.point') + ': ' + S.point);
     if (R.exp != null) lines.push(M('msg.exp') + ': ' + t('exp', ml)[R.exp]);
@@ -520,7 +524,7 @@
   }
   function partnerFrom() {
     // Самая низкая цена среди байков: без срока «от» по ставке 3+ мес, со сроком - сумма на срок
-    var min = Infinity; BIKES.forEach(function (b) { min = Math.min(min, price(b).total); });
+    var min = Infinity; BIKES.forEach(function (b) { min = Math.min(min, price(b).perDay); });
     return term() ? money(min) : f('price.from', { p: money(min) });
   }
   function renderMarkers() {
@@ -555,7 +559,7 @@
       var list = BIKES.slice().sort(function (a, b) { return price(a).total - price(b).total; });
       h = head + '<p class="mp__kick">' + esc(t('map.pT')) + ' · ' + esc(area) + '</p>' +
         '<h3 class="mp__t">' + esc(partnerFrom()) + '</h3>' +
-        '<p class="mp__s">' + esc(term() ? f('calc.for', { d: daysText(term()) }) : t('suf.3')) + '</p>' +
+        '<p class="mp__s">' + esc(term() ? t('suf.0') + ' · ' + f('calc.for', { d: daysText(term()) }) : t('suf.3')) + '</p>' +
         '<ul class="mp__facts">' +
           '<li>' + icon('i-clock') + '<span>' + esc(f('map.hours', { h: HOURS[p.id] || '' })) + '</span></li>' +
           '<li>' + icon('i-shield') + '<span>' + esc(t('map.checked')) + '</span></li>' +
@@ -569,7 +573,7 @@
           var q = price(b), pm = priceMain(q);
           return '<li><button type="button" class="mp__bike" data-mgal="' + b.id + '"><img src="img/' + b.id + '.webp" width="800" height="800" loading="lazy" alt="">' +
             '<span class="mp__bn"><b>' + esc(b.name) + '</b><small>' + b.cc + ' cc</small></span>' +
-            '<span class="mp__bp"><b>' + esc(pm.b) + '</b><small>' + esc(q.from ? t('suf.2') : pm.s) + '</small></span></button>' +
+            '<span class="mp__bp"><b>' + esc(pm.b) + '</b><small>' + esc(t('suf.0')) + '</small></span></button>' +
             '<button type="button" class="btn btn--accent mp__pick" data-mpick="' + b.id + '">' + esc(t('card.pick')) + '</button></li>';
         }).join('') + '</ul>' +
         '<button type="button" class="btn btn--line btn--block mp__all" data-mall>' + esc(t('map.all')) + '</button>';
